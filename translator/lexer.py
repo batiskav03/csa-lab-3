@@ -8,7 +8,6 @@ class TokenEnum(Enum):
     TYPE = "TYPE" # int, char , string
     PRINT = "PRINT"
     IF = "IF" # if
-    ELSE = "ELSE" # else 
     WHILE = "WHILE" # while 
     SIGN = "SIGN" # + - / % *
     LPAREN = "LPAREN" # (
@@ -27,6 +26,9 @@ class TokenType:
         
     def get_regexp(self) -> str:
         return self.regexp
+    
+    def __str__(self) -> str:
+        return str(self.name)
 
 token_type_list: list[TokenType] = [
     TokenType(TokenEnum.TYPE, "string|int|char"),
@@ -44,7 +46,6 @@ token_type_list: list[TokenType] = [
     TokenType(TokenEnum.LPAREN , "\("),
     TokenType(TokenEnum.IF, "if"),
     TokenType(TokenEnum.WHILE, "while"),
-    TokenType(TokenEnum.ELSE, "else")
     
     ] 
     
@@ -56,6 +57,9 @@ class Token:
     def __init__(self, token_type: TokenType, text: str) -> None:
         self.token_type: TokenType = token_type
         self.text: str = text.strip()
+    
+    def __str__(self) -> str:
+        return f'[{self.token_type}: {self.text}]'
 
     
 class Tokenizer: 
