@@ -1,10 +1,13 @@
+from __future__ import annotations
 from lexer import Tokenizer, TokenType, Token, TokenEnum, token_type_list
-from nodes import Node,  NumberNode, VariableNode, BinaryOp
+from nodes import Node,  NumberNode, VariableNode, BinaryOp, WhileIfNode
+
 
 class AstParser:
 
     def __init__(self, tokens: list[Token]):
         self.tokens: list[Token] = tokens
+        self.init_variables = {}
         self.pos = 0
         self.scope = {}
 
@@ -25,16 +28,21 @@ class AstParser:
             raise ValueError(f'on position {self.pos} required ${token_type.name}')
         return token
     
-    def parse_variable_or_number(self) -> Node:
-        number = self.match(TokenEnum.INTVAL)
-        if (number != None):
-            print(number)
-            return NumberNode(Token)
+    def parse_assign(self, type: Token) -> Node:
+        variable = self.match(TokenEnum.LITTERAL)
+        if (variable != None and self.init_variables.get(variable.text, None) == None):
+            self.init_variables[variable.text] = type
+            return VariableNode(variable, type)
+        raise ValueError(f"Missing variable on position {self.pos} or this variable already exists.")
         
+        
+    def parse_variable_or_number(self) -> Node:
         variable = self.match(TokenEnum.LITTERAL)
         if (variable != None):
-            return VariableNode(variable)
-        
+            return VariableNode(variable, self.init_variables[variable.text])
+        number = self.match(TokenEnum.INTVAL)
+        if (number != None):
+            return NumberNode(Token)
         raise ValueError(f'Required number or variable on position {self.pos}')
     
     def parse_parentheses(self) -> Node:
@@ -49,6 +57,8 @@ class AstParser:
     def parse_operation(self) -> Node:
         left_node = self.parse_parentheses()
         operator = self.match(TokenEnum.SIGN)
+        if (operator == None):
+            operator = self.match(TokenEnum.COMPARATION)
         while (operator != None):
             right_node = self.parse_parentheses()
             left_node = BinaryOp(operator, left_node, right_node)
@@ -56,16 +66,19 @@ class AstParser:
 
         return left_node
     
+    
+    
     def parse_statement(self) -> Node:
         type_token = self.match(TokenEnum.TYPE) # встретилось инициализирование  
         if (type_token != None):
-            variable_node = self.parse_variable_or_number()
+            variable_node = self.parse_assign(type_token)
             assign_operator = self.match(TokenEnum.ASSIGN)
             if (assign_operator != None):
                 right_operation_node = self.parse_operation()
                 binary_node = BinaryOp(assign_operator, variable_node, right_operation_node)
+                self.require(TokenEnum.SEMICOLON)
                 return binary_node
-            raise ValueError(f'After variable require assign operator on position {self.pos}')
+            raise ValueError(f"After variable require assign operator on position {self.pos}")
         litteral_token = self.match(TokenEnum.LITTERAL)
         if (litteral_token != None): # встретилось присваивание 
             self.pos -= 1
@@ -74,24 +87,44 @@ class AstParser:
             if (assign_operator != None):
                 right_operation_node = self.parse_operation()
                 binary_node = BinaryOp(assign_operator, variable_node, right_operation_node)
+                self.require(TokenEnum.SEMICOLON)
                 return binary_node
             raise ValueError(f'After variable require assign operator on position {self.pos}')
-        statement_token = self.match(TokenEnum.IF)
-        if (statement_token != None):
+        if_statement_token = self.match(TokenEnum.IF)
+        if (if_statement_token != None):
             statement = self.parse_operation()
-
-
+            self.require(TokenEnum.LEFTBRACKET)
+            if_node = WhileIfNode(statement, if_statement_token)
+            while (self.match(TokenEnum.RIGHTBRACKET) == None):
+                code_string_node = self.parse_statement()
+                if_node.childrens.append(code_string_node)
+            return if_node
+        while_statement_node = self.match(TokenEnum.WHILE)
+        if (while_statement_node != None):
+            statement = self.parse_operation()
+            self.require(TokenEnum.LEFTBRACKET)
+            while_node = WhileIfNode(statement, while_statement_node)
+            while (self.match(TokenEnum.RIGHTBRACKET) == None):
+                code_string_node = self.parse_statement()
+                while_node.childrens.append(code_string_node)
+            return while_node
+        
     def parse_code(self) -> Node:
         root = Node()
         while (self.pos < len(self.tokens)):
             code_string_node = self.parse_statement()
-            self.require(TokenEnum.SEMICOLON)
             root.childrens.append(code_string_node)
         return root
 
 
 tokenizer = Tokenizer("""int i = 3 + 4;
                       i = 32;
+                      while (i != 20) {
+                          i = i - 1;
+                          if ((i - 15) == 0) {
+                              i = i - 2;
+                          }
+                      }
                       """)
 result = tokenizer.start_analyze()
 parser = AstParser(result)

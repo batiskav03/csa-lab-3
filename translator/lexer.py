@@ -31,10 +31,12 @@ class TokenType:
         return str(self.name)
 
 token_type_list: list[TokenType] = [
+    TokenType(TokenEnum.PRINT, "print"),
+    TokenType(TokenEnum.IF, "if"),
+    TokenType(TokenEnum.WHILE, "while"),
     TokenType(TokenEnum.TYPE, "string|int|char"),
     TokenType(TokenEnum.LITTERAL, "[a-z]+"),
     TokenType(TokenEnum.INTVAL, "\d+"),
-    TokenType(TokenEnum.PRINT, "print"),
     TokenType(TokenEnum.SIGN, "\\+|\\-|\\*|\\/|\\%"),
     TokenType(TokenEnum.COMPARATION, "!=|==|>|<"),
     TokenType(TokenEnum.ASSIGN, "="),
@@ -44,8 +46,7 @@ token_type_list: list[TokenType] = [
     TokenType(TokenEnum.RIGHTBRACKET , "\}"),
     TokenType(TokenEnum.RPAREN , "\)"),
     TokenType(TokenEnum.LPAREN , "\("),
-    TokenType(TokenEnum.IF, "if"),
-    TokenType(TokenEnum.WHILE, "while"),
+    
     
     ] 
     

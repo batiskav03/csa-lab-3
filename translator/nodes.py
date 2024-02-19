@@ -11,7 +11,17 @@ class Node:
         return "{ " + node_str + "}"
     
 
-
+class WhileIfNode(Node):
+    def __init__(self, statement: Node ,token: Token):
+        super(WhileIfNode, self).__init__()
+        self.token: Token = token
+        self.statement: Node = statement
+        
+    def __str__(self) -> str:
+        node_str = ""
+        for node in self.childrens:
+            node_str += str(node) + ", \n"
+        return f"( {self.token.token_type.name.name} statement: [{self.statement}] \n: {node_str}  )"
     
     
 class NumberNode(Node):
@@ -22,11 +32,12 @@ class NumberNode(Node):
         return f"NumberNode: [ {self.number} ]"
 
 class VariableNode(Node):
-    def __init__(self, var: Token):
+    def __init__(self, var: Token, type: Token):
         self.var: Token = var
+        self.type: Token = type 
 
     def __str__(self) -> str:
-        return f"VariableNode:  [ {self.var} ]"
+        return f"VariableNode:  [ type: {self.type}  value: {self.var}  ]"
         
 class BinaryOp(Node):
     def __init__(self, operator: Token, left_node: Node, right_node: Node):
