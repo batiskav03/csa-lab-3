@@ -121,7 +121,7 @@ tokenizer = Tokenizer("""int i = 3 + 4;
                       i = 32;
                       while (i != 20) {
                           i = i - 1;
-                          if ((i - 15) == 0) {
+                          if (i == 15) {
                               i = i - 2;
                           }
                       }
