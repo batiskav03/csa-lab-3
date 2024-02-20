@@ -90,15 +90,7 @@ class Tokenizer:
                 return Token(type, result.group(0))
         return None
 
-tokenizer = Tokenizer("""int i = 3;
-                      int j = 4;
-                      while (j != 0) {
-                          j = j - 1;
-                      }
-                      if ((i > 0) and (j % 2 == 0)) : {
-                          print;
-                      }
-                      """)
+
 
 
 

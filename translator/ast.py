@@ -1,6 +1,6 @@
 from __future__ import annotations
 from lexer import Tokenizer, TokenType, Token, TokenEnum, token_type_list
-from nodes import Node,  NumberNode, VariableNode, BinaryOp, WhileIfNode
+from nodes import AssignNode, InitNode, Node,  NumberNode, VariableNode, BinaryOp, WhileIfNode, RootNode
 
 
 class AstParser:
@@ -28,7 +28,7 @@ class AstParser:
             raise ValueError(f'on position {self.pos} required ${token_type.name}')
         return token
     
-    def parse_assign(self, type: Token) -> Node:
+    def parse_init(self, type: Token) -> Node:
         variable = self.match(TokenEnum.LITTERAL)
         if (variable != None and self.init_variables.get(variable.text, None) == None):
             self.init_variables[variable.text] = type
@@ -71,11 +71,11 @@ class AstParser:
     def parse_statement(self) -> Node:
         type_token = self.match(TokenEnum.TYPE) # встретилось инициализирование  
         if (type_token != None):
-            variable_node = self.parse_assign(type_token)
+            variable_node = self.parse_init(type_token)
             assign_operator = self.match(TokenEnum.ASSIGN)
             if (assign_operator != None):
                 right_operation_node = self.parse_operation()
-                binary_node = BinaryOp(assign_operator, variable_node, right_operation_node)
+                binary_node = InitNode(variable_node, right_operation_node)
                 self.require(TokenEnum.SEMICOLON)
                 return binary_node
             raise ValueError(f"After variable require assign operator on position {self.pos}")
@@ -86,7 +86,7 @@ class AstParser:
             assign_operator = self.match(TokenEnum.ASSIGN)
             if (assign_operator != None):
                 right_operation_node = self.parse_operation()
-                binary_node = BinaryOp(assign_operator, variable_node, right_operation_node)
+                binary_node = AssignNode(variable_node, right_operation_node)
                 self.require(TokenEnum.SEMICOLON)
                 return binary_node
             raise ValueError(f'After variable require assign operator on position {self.pos}')
@@ -110,7 +110,7 @@ class AstParser:
             return while_node
         
     def parse_code(self) -> Node:
-        root = Node()
+        root = RootNode()
         while (self.pos < len(self.tokens)):
             code_string_node = self.parse_statement()
             root.childrens.append(code_string_node)
