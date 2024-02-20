@@ -6,6 +6,26 @@
 #                 |   address   |     |   address   |   address   |
 #                                     |           value           |
 
+
+OPCODE = {
+    "NOP": 0,
+    "MOV": 1,
+    "ADD": 2,
+    "SUB": 3,
+    "MUL": 4,
+    "DIV": 5,
+    "MOD": 6,
+    "AND": 7,
+    "OR": 8,
+    "NOT": 9,
+    "CMP": 10,
+    "JMP": 11,
+    "JZ": 13,
+    "JN": 14,
+    "JP": 15,
+    "HLT": 16
+
+}
 class Instruction:
 
     def __init__(self, opcode: bin, adress_mode: bin):

@@ -37,6 +37,9 @@ class NumberNode(Node):
     def __init__(self, number: Token):
         self.number: Token = number
 
+    def get_value(self) -> int:
+        return int(self.number.text)
+
     def __str__(self) -> str:
         return f"NumberNode: [ {self.number} ]"
 
@@ -54,8 +57,8 @@ class BinaryOp(Node):
         self.left_node: Node = left_node
         self.right_node: Node = right_node
 
-    def get_operator(self) -> TokenEnum:
-        return self.operator.token_type.name
+    def get_operator(self) -> str:
+        return self.operator.text
     
     def get_left_node(self) -> Node:
         return self.left_node

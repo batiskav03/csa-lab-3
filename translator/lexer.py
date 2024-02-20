@@ -21,8 +21,9 @@ class TokenEnum(Enum):
     
 class TokenType:
     def __init__(self, name: TokenEnum, regexp: str) -> None:
-        self.regexp: str = regexp
         self.name: TokenEnum = name 
+        self.regexp: str = regexp
+        
         
     def get_regexp(self) -> str:
         return self.regexp
