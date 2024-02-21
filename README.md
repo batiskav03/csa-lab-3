@@ -45,23 +45,23 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
 Машинное слово - non-fixed от 2 до 4 байт: 
 |1---   |2---   |3---  |4---  |     |5---  |6---  |7---  |8---  |
-|opcode |ad.mode| regs | 
-                       | regs |     |   address   |
-                |   address   |     |   address   |   address   |
+|opcode |ad.mode| regs | val  | 
+                       | regs |     |          address          |
+                |short address|     
                                     |           value           |
 ```
 -Система команд:
 | mnemonic | opcode (HEX) | definition |
 | ------  | ------------  | ----------- | 
-| MOV | 0 | move |
-| ADD | 1 | summary |
-| SUB | 2 | subtract |
-| MUL | 3 | multiply |
-| DIV | 4 | divide |
-| MOD | 5 | mod_div |
-| AND | 6 | logic and |
-| OR | 7 | logic or |
-| XOR | 8 | logic xor |
+| NOP | 0 | nop |
+| MOV | 1 | move |
+| ADD | 2 | summary |
+| SUB | 3 | subtract |
+| MUL | 4 | multiply |
+| DIV | 5 | divide |
+| MOD | 6 | mod_div |
+| AND | 7 | logic and |
+| OR | 8 | logic or |
 | NOT | 9 | logic not |
 | CMP | A | compare | 
 | JMP | B | jump | 
@@ -89,4 +89,31 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
     "!": (int) -> int  | (char) -> char;
     "==": (int, int) -> int | (char, char) -> int;
 ```
-- Система команд:
+- Структура памяти:
+ Registers
++------------------------------------+
+| A0 - аккумулятор                   | #todo
++------------------------------------+
+| ...                                |
++------------------------------------+
+| A15 - аккумулятор                  |
++------------------------------------+
+| CR - регистр инструкции            |
++------------------------------------+
+| DR - регистр данных                |
++------------------------------------+
+| IP - счётчик команд                |
++------------------------------------+
+| SP - указатель стека               |
++------------------------------------+
+| AR - адрес записи в память         |
++------------------------------------+
+            Instruction & Data memory
++-----------------------------------------------+
+|    0    :  programm start                     |  <-- IP, SP
+|        ...                                    |
+| start   :  buffer start adr                   |
+|        ...                                    |
+| end     :  buffer end adr                     |
+|        ...                                    |
++-----------------------------------------------+
