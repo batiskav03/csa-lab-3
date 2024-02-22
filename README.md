@@ -43,32 +43,40 @@ number ::= [0-9]*
 litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
 ```
-Машинное слово - non-fixed от 2 до 4 байт: 
-|1---   |2---   |3---  |4---  |     |5---  |6---  |7---  |8---  |
-|opcode |ad.mode| regs | val  | 
-                       | regs |     |          address          |
-                |short address|     
-                                    |           value           |
+Машинное слово - non-fixed 16 - 32 бит  : 
+|1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  |  
+|    opcode     | regs | regs |
+                |    offset   |
+                | regs |       address      |
+                |       address      |
+                | regs |             value                |
 ```
 -Система команд:
 | mnemonic | opcode (HEX) | definition |
 | ------  | ------------  | ----------- | 
-| NOP | 0 | nop |
-| MOV | 1 | move |
-| ADD | 2 | summary |
-| SUB | 3 | subtract |
-| MUL | 4 | multiply |
-| DIV | 5 | divide |
-| MOD | 6 | mod_div |
-| AND | 7 | logic and |
-| OR | 8 | logic or |
-| NOT | 9 | logic not |
-| CMP | A | compare | 
-| JMP | B | jump | 
-| JZ | C | jump zero |
-| JN | D | jump negative |
-| JP | E | jump positive |
-| HLT| F | halt |
+| NOP | 00 | nop |
+| MOV | 01 | move |
+| ADD | 02 | summary |
+| SUB | 03 | subtract |
+| MUL | 04 | multiply |
+| DIV | 05 | divide |
+| MOD | 06 | mod_div |
+| AND | 07 | logic and |
+| OR | 08 | logic or |
+| NOT | 09 | logic not |
+| CMP | 0A | compare | 
+| JMP | 0B | jump | 
+| JZ | 0C | jump zero |
+| JN | 0D | jump negative |
+| JP | 0E | jump positive |
+| HLT| 0F | halt |
+| IMOV | 10 | move value by <adress> = <rbp> - <value_offset> to rax|
+| IADD | 20 | summary rax with value by <adress> |
+| ISUB | 30 | subtract rax with value by <adress>|
+| IMUL | 40 | multiply rax with value by <adress>|
+| IDIV| 50 | divide rax with value by <adress> |
+| MOVV | 11 | move value to <adress> = <rbp> - <var_offset> |
+| MOVA | 12 | move value to <adress> = <rbp> - <var_offset> |
 
 
 - Типизация:

@@ -1,6 +1,6 @@
 import sys
 sys.path.append("../csa-lab-3")
-from machine.isa import Instruction, OPCODE
+from machine.isa import Instruction, OPCODE, MEMORY_SIZE, REGISTERS, OffsetInstruction, SecondWord, MAX_VALUE
 from lexer import Token, TokenType
 from nodes import AssignNode, BinaryOp, InitNode, Node, NumberNode, RootNode, VariableNode, WhileIfNode
 from lexer import TokenEnum, Tokenizer
@@ -13,6 +13,9 @@ class Translator:
     def __init__(self, ast: Node):
         self.ast: Node = ast
         self.commands: list[Instruction] = []
+        self.stack_pointer: int = 0
+        self.variable_offset: dict[str, int] = {}
+        
 
 
     def process_binary_operation(self, node: BinaryOp):
@@ -43,7 +46,108 @@ class Translator:
                 #если число помещается в 1 байт, то в адрес моде НЕ ставим управляющий бит, и помещаем число в команду, 
                                     # иначе помещаем число следом за командой и тащим уже оттуда
             # нужно добавить указатели на память, собственно и расписать ее
+    
+    def operation_with_rax_value(operator: str) -> Instruction:
+        if (operator == "+"):
+            return Instruction(OPCODE.IADDVAL)
+        if (operator == "-"):
+            return Instruction(OPCODE.ISUBVAL)
+        if (operator == "*"):
+            return Instruction(OPCODE.IMULVAL)
+        if (operator == "/"):
+            return Instruction(OPCODE.IDIVVAL)
+        
+    def operation_with_rax_offset_value(operator: str, offset: int) -> Instruction:
+        if (operator == "+"):
+            return OffsetInstruction(OPCODE.IADD, offset)
+        elif (operator == "-"):
+            return  OffsetInstruction(OPCODE.ISUB, offset)
+        elif (operator == "*"):
+            return OffsetInstruction(OPCODE.IMUL, offset)
+        elif (operator == "/"):
+            return OffsetInstruction(OPCODE.IDIV, offset)
+    
+    def process_binary_op_var_and_num(self, left: Node, right: Node, var_str: str, operator: str) -> None:
+        target_node = right if isinstance(right, VariableNode) else left
+        var_target = target_node.get_value()
+        var_target = right.type.text
+        var_offset = self.variable_offset.get(var_target)
+        mov_to_rax = OffsetInstruction(OPCODE.IMOV, var_offset)
+        operation_to_rax = self.operation_with_rax_value(operator)
+        second_word = SecondWord(target_node.get_value())
+        mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
+        self.commands += [mov_to_rax, operation_to_rax, second_word, mov_rax_to_mem]
+    
+    def process_binary_op_var_and_var(self, left: Node, right: Node, var_str: str, operator: str) -> None:
+        var_left = left.type.text
+        var_left_offset = self.variable_offset.get(var_left)
+        var_right = right.type.text
+        var_right_offset = self.variable_offset.get(var_right)
+        mov_to_rax = OffsetInstruction(OPCODE.IMOV, var_left_offset)
+        operation_to_rax = self.operation_with_rax_offset_value(operator, var_right_offset)
+        mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
+        self.commands += [mov_to_rax, operation_to_rax, mov_rax_to_mem]
+        
+    def process_binary_op_num_and_num(self, left: NumberNode, right: NumberNode, var_str: str,  operator: str) -> None:
+        res: int
+        if (operator == "+"):
+            res = left.get_value() + right.get_value()
+        elif (operator == "-"):
+            res = left.get_value() - right.get_value()
+        elif (operator == "*"):
+            res = left.get_value() * right.get_value()
+        elif (operator == "/"):
+            res = left.get_value() / right.get_value()
+        if res > MAX_VALUE:
+            raise ValueError("int overflow")
+        movv = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
+        self.commands.append(movv)
+        
+    def process_binary_op(self, binary_node: BinaryOp , var_str: str) -> None:
+        left = binary_node.get_left_node()
+        right = binary_node.get_right_node()
+        operator = binary_node.get_operator()
+        if (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
+            self.process_binary_op_num_and_num(left, right, var_str, operator)
+        elif ((isinstance(left, NumberNode) and isinstance(right, VariableNode))
+                    or (isinstance(left, VariableNode) and isinstance(right, NumberNode))):
+            self.process_binary_op_var_and_num(left, right, var_str, operator)
+        elif (isinstance(left, VariableNode) and isinstance(right, VariableNode)):
+            self.process_binary_op_var_and_var(left, right)
             
+    def process_number_node(self, node: NumberNode, var_str: str) -> None:
+        command = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
+        value = SecondWord(int(node.number.text))
+        self.commands += [command, value]
+        
+    def process_variable_node(self, node: VariableNode, var_str: str) -> None:
+        var_name = node.type.text
+        mov_to_rax = OffsetInstruction(OPCODE.IMOV, self.variable_offset[var_name])
+        mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
+        self.commands += [mov_to_rax, mov_rax_to_mem]
+    
+    def process_initilization(self, node: AssignNode):
+        variable_node = node.variable
+        var_str = variable_node.type.text
+        right_part = node.right_part
+        # определяю offset относительно rbp для переменной
+        if (self.variable_offset.get(var_str, None) == None):
+            self.variable_offset[var_str] = self.stack_pointer
+            self.stack_pointer += 1
+        else:
+            raise ValueError(f"variable {var_str} already has been initilazed")
+        
+        if (isinstance(right_part, NumberNode)):
+            self.process_number_node(right_part, var_str)
+        elif (isinstance(right_part, VariableNode)):
+            self.process_variable_node(right_part, var_str)
+        elif (isinstance(right_part, BinaryOp)):
+            self.process_binary_op(right_part, var_str)
+
+                
+                
+                
+                
 
     def translate_node(self, node: Node):
         if (isinstance(node, WhileIfNode)):

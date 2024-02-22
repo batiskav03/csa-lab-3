@@ -1,0 +1,75 @@
+# long gcd(long m, long n)
+# {
+#     while(m && n) if (m < n) n %= m; else m %= n;
+#     return (m == 0L) ? n : m;
+# }
+
+# long lcm(long m, long n)
+# {
+#     return (m/gcd(m,n))*n;
+# }
+
+
+# int main(int argc, const char * argv[])
+# {
+#     long Res = 1;
+#     for(int i = 2; i <= 20; ++i)
+#     {
+#         Res = lcm(Res,i);
+#     }
+#     cout << Res << endl;
+# }
+
+
+def gcd(m:int , n:int) -> int:
+    while (m and n):
+        if (m < n):
+            n = n % m
+        else:
+            m = m % n
+    result = n if (m == 0) else m
+    if result > 2147483647:
+        print("xyu")
+    return result
+
+def lcm(m: int, n: int) -> int:
+    result: int = ((m//gcd(m,n)) * n)
+    if result > 2147483647:
+        print("xyu")
+    return result
+
+def main() -> int:
+    res: int = 1;
+    for i in range (2, 20):
+        res = lcm(res, i)
+    return res
+print(main())
+
+
+
+# int main(int argc, const char * argv[])
+# {
+#     int Res = 1;
+#     int tmp_res = 0;
+#     for(int i = 2; i <= 20; ++i)
+#     {
+#         int m = Res;
+#         int n = i;
+#         while(m && n) {
+#             if (m < n) n %= m;
+#             if (m >= n) m %= n;
+#         } 
+#         if (m == 0) {
+#             tmp_res = n;
+#         } 
+#         if (m != 0){
+#             tmp_res = m;
+#         }
+#         m = Res;
+#         n = i;
+#         tmp_res = (m / tmp_res) * i;
+        
+#         Res = tmp_res;
+#     }
+
+# }

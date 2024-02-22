@@ -48,6 +48,9 @@ class VariableNode(Node):
         self.var: Token = var
         self.type: Token = type 
 
+    def get_value(self) -> int:
+        return int(self.var.text)
+    
     def __str__(self) -> str:
         return f"VariableNode:  [ type: {self.type}  value: {self.var}  ]"
         
