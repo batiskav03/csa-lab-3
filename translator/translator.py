@@ -18,34 +18,7 @@ class Translator:
         
 
 
-    def process_binary_operation(self, node: BinaryOp):
-        left = node.get_left_node()
-        right = node.get_right_node()
-        if (isinstance(left,BinaryOp)):
-            self.process_binary_operation(left)
 
-        if (isinstance(right, BinaryOp)):
-            self.process_binary_operation(right)
-        
-        op = node.get_operator()
-
-        if (op == "+"):
-            opcode = OPCODE["ADD"]
-            if (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
-                summary = left.get_value() + right.get_value()
-
-                print(bin(opcode)[2:] + bin(summary)[2:])
-                if (summary < 256):
-                    #todo: в одну команду
-                    pass
-                else:
-                    #todo: в две команды
-                    pass
-            else: 
-                pass
-                #если число помещается в 1 байт, то в адрес моде НЕ ставим управляющий бит, и помещаем число в команду, 
-                                    # иначе помещаем число следом за командой и тащим уже оттуда
-            # нужно добавить указатели на память, собственно и расписать ее
     
     def operation_with_rax_value(operator: str) -> Instruction:
         if (operator == "+"):
