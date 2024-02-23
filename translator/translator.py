@@ -81,14 +81,19 @@ class Translator:
         left = binary_node.get_left_node()
         right = binary_node.get_right_node()
         operator = binary_node.get_operator()
-        if (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
+        if (isinstance(left, BinaryOp)):
+            self.process_binary_op(left, var_str)
+        if (isinstance(right, BinaryOp)):
+            self.process_binary_op(right, var_str)
+        elif (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
             self.process_binary_op_num_and_num(left, right, var_str, operator)
         elif ((isinstance(left, NumberNode) and isinstance(right, VariableNode))
                     or (isinstance(left, VariableNode) and isinstance(right, NumberNode))):
             self.process_binary_op_var_and_num(left, right, var_str, operator)
         elif (isinstance(left, VariableNode) and isinstance(right, VariableNode)):
             self.process_binary_op_var_and_var(left, right)
-            
+        
+       
     def process_number_node(self, node: NumberNode, var_str: str) -> None:
         command = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
         value = SecondWord(int(node.number.text))
