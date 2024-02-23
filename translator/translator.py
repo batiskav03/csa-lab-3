@@ -74,7 +74,8 @@ class Translator:
         if res > MAX_VALUE:
             raise ValueError("int overflow")
         movv = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
-        self.commands.append(movv)
+        value = SecondWord(res)
+        self.commands += [movv, value]
         
     def process_binary_op(self, binary_node: BinaryOp , var_str: str) -> None:
         left = binary_node.get_left_node()
@@ -101,7 +102,7 @@ class Translator:
     
     def process_initilization(self, node: AssignNode):
         variable_node = node.variable
-        var_str = variable_node.type.text
+        var_str = variable_node.var.text
         right_part = node.right_part
         # определяю offset относительно rbp для переменной
         if (self.variable_offset.get(var_str, None) == None):
@@ -145,8 +146,13 @@ class Translator:
             for node in children:
                 self.translate_node(node)
 
-nudes = BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128")))
-Translator([]).process_binary_operation(nudes)
+nudes = AssignNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+nudes1 = AssignNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+trans = Translator([])
+trans.process_initilization(nudes)
+trans.process_initilization(nudes1)
+for i in trans.commands:
+    print(i)
 
 # def main(source, target):
 #     with open(source, encoding="UTF-8") as f:

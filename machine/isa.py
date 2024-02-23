@@ -96,10 +96,16 @@ class SecondWord:
     def __init__(self, data: int) -> None:
         self.data: int = data
 
+    def __str__(self) -> str:
+        return f" value: {self.data} "
+    
 class Instruction:
 
     def __init__(self, opcode: int):
         self.opcode: int = opcode
+        
+    def __str__(self) -> str:
+        return f"opcode: { self.opcode }"
 
         
 class OffsetInstruction(Instruction):
@@ -107,6 +113,8 @@ class OffsetInstruction(Instruction):
         super().__init__(opcode)
         self.offset: int = offset
 
+    def __str__(self) -> str:
+        return f"opcode: {self.opcode} offset: {self.offset}"
 
 class DoubleRegsInstruction(Instruction):
 
