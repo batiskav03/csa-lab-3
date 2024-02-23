@@ -81,11 +81,12 @@ class Translator:
         left = binary_node.get_left_node()
         right = binary_node.get_right_node()
         operator = binary_node.get_operator()
-        if (isinstance(left, BinaryOp)):
-            self.process_binary_op(left, var_str)
-        if (isinstance(right, BinaryOp)):
-            self.process_binary_op(right, var_str)
-        elif (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
+        # if (isinstance(left, BinaryOp)):
+        #     self.process_binary_op(left, var_str)
+        # if (isinstance(right, BinaryOp)):
+        #     self.process_binary_op(right, var_str)
+        # recoursive binary op
+        if (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
             self.process_binary_op_num_and_num(left, right, var_str, operator)
         elif ((isinstance(left, NumberNode) and isinstance(right, VariableNode))
                     or (isinstance(left, VariableNode) and isinstance(right, NumberNode))):
@@ -105,7 +106,7 @@ class Translator:
         mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
         self.commands += [mov_to_rax, mov_rax_to_mem]
     
-    def process_initilization(self, node: AssignNode):
+    def process_initilization(self, node: InitNode) -> None:
         variable_node = node.variable
         var_str = variable_node.var.text
         right_part = node.right_part
@@ -124,35 +125,59 @@ class Translator:
             self.process_binary_op(right_part, var_str)
 
                 
-                
-                
-                
+    def process_assign(self, node: AssignNode) -> None:
+        variable_node = node.variable
+        var_str = variable_node.var.text
+        right_part = node.right_part
+        if (self.variable_offset.get(var_str, None) == None):
+            raise ValueError(f"variable {var_str} hasn't been initilazed")
+        
+        if (isinstance(right_part, NumberNode)):
+            self.process_number_node(right_part, var_str)
+        elif (isinstance(right_part, VariableNode)):
+            self.process_variable_node(right_part, var_str)
+        elif (isinstance(right_part, BinaryOp)):
+            self.process_binary_op(right_part, var_str)
+
+    def process_condition(self, prev_len: int , node: BinaryOp):
+        left = node.get_left_node()
+        right = node.get_right_node()
+        operator = node.get_operator()
+        if (operator == "=="):
+            
+    
+    def process_if_statement(self, node: WhileIfNode) -> None:
+        condition = node.statement
+        saved_state = self.commands.copy()
+        self.commands = []
+        self.ast_to_list(node)
+        commands_len = len(self.commands)
+        process_statement()
 
     def translate_node(self, node: Node):
         if (isinstance(node, WhileIfNode)):
             if (node.token.token_type.name == TokenEnum.IF):
                 self.process_if_statement(node)
             else:
-                self.process_else_statement(node)
+                self.process_while_statement(node)
         elif (isinstance(node, AssignNode)):
             self.process_assign(node)
         elif (isinstance(node, InitNode)):
             self.process_initilization(node)
-        elif (isinstance(node, BinaryOp)):
-            self.process_binary_operation(node)
+
         
     
     
 
-    def ast_to_list(self):
-        current_node = self.ast
+    def ast_to_list(self, node: Node):
+        current_node = node
         if (isinstance(current_node, RootNode)):
             children = current_node.children
             for node in children:
                 self.translate_node(node)
 
-nudes = AssignNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
-nudes1 = AssignNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+nudes = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
 trans = Translator([])
 trans.process_initilization(nudes)
 trans.process_initilization(nudes1)
