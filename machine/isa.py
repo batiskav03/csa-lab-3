@@ -35,6 +35,12 @@ from enum import Enum
 # | JP | 0E | jump positive |
 # | HLT| 0F | halt |
 # | IMOV | 10 | move value by <adress> = <rbp> - <value_offset> to rax|
+# | ICMP | 1B | cmp value by <adress> = <rbp> - <value_offset> with rax|
+# | JNEQ | 1C | jump not equal|
+# | JNE | 1D | jump negative or equal|
+# | JPE | 1E | jump positive or equal |
+# | JNZ | 1F | jump not zero |
+# | CMPA | 2B | cmp rax with absolute value |
 # | IADD | 20 | summary rax with value by <adress> |
 # | IADDVAL | 21 | summary rax with <value>  |
 # | ISUB | 30 | subtract rax with value by <adress>|
@@ -83,6 +89,12 @@ class OPCODE(Enum):
     IMOV = 16,
     MOVV = 17,
     MOVA = 18,
+    ICMP = 27,
+    JNEQ = 28,
+    JNE = 29,
+    JPE = 30,
+    JNZ = 31,
+    CMPA = 43,
     IADD = 32,
     IADDVAL = 33,
     ISUB = 48,

@@ -4,7 +4,7 @@ from machine.isa import Instruction, OPCODE, MEMORY_SIZE, REGISTERS, OffsetInstr
 from lexer import Token, TokenType
 from nodes import AssignNode, BinaryOp, InitNode, Node, NumberNode, RootNode, VariableNode, WhileIfNode
 from lexer import TokenEnum, Tokenizer
-from ast import AstParser
+from ast_parser import AstParser
 
 
 class Translator:
@@ -73,7 +73,7 @@ class Translator:
             res = left.get_value() / right.get_value()
         if res > MAX_VALUE:
             raise ValueError("int overflow")
-        movv = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
+        movv = Instruction(OPCODE.MOVV)
         value = SecondWord(res)
         self.commands += [movv, value]
         
@@ -96,7 +96,7 @@ class Translator:
         
        
     def process_number_node(self, node: NumberNode, var_str: str) -> None:
-        command = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
+        command = Instruction(OPCODE.MOVV)
         value = SecondWord(int(node.number.text))
         self.commands += [command, value]
         
@@ -139,20 +139,97 @@ class Translator:
         elif (isinstance(right_part, BinaryOp)):
             self.process_binary_op(right_part, var_str)
 
-    def process_condition(self, prev_len: int , node: BinaryOp):
+    def calculate_cmp(self, left_node: Node, right_node: Node):
+        commands: list[Instruction] = []
+        if (isinstance(left_node, NumberNode)):
+            movv = Instruction(OPCODE.MOVV)
+            value = SecondWord(int(left_node.number.text))
+            commands += [movv, value]
+        elif (isinstance(left_node, VariableNode)):
+            imov = OffsetInstruction(OPCODE.IMOV, self.variable_offset[left_node.var.text])
+            commands += [imov]
+        if (isinstance(right_node, NumberNode)):
+            cmpa = Instruction(OPCODE.CMPA)
+            value = SecondWord(int(right_node.number.text))
+            commands += [cmpa, value]
+        elif (isinstance(right_node, VariableNode)):
+            icmp = OffsetInstruction(OPCODE.ICMP, self.variable_offset[left_node.var.text])
+            commands += [icmp]
+        return list
+        
+
+
+
+    def process_while_condition(self, prev_len: int , node: BinaryOp) -> list[Instruction]:
         left = node.get_left_node()
         right = node.get_right_node()
         operator = node.get_operator()
+        compare_commands_list = self.calculate_cmp(left, right)
+        length = len(compare_commands_list) + prev_len
+        jump: Instruction
+        #неполная длинна епта
         if (operator == "=="):
-            
-    
-    def process_if_statement(self, node: WhileIfNode) -> None:
+            jump = OffsetInstruction(OPCODE.JZ, -length)
+        elif (operator == "<"):
+            jump = OffsetInstruction(OPCODE.JN, -length)
+        elif (operator == ">"):
+            jump = OffsetInstruction(OPCODE.JP, -length)
+        elif (operator == "<="):
+            jump = OffsetInstruction(OPCODE.JNE, -length)
+        elif (operator == ">="):
+            jump = OffsetInstruction(OPCODE.JPE, -length)
+        elif (operator == "!="):
+            jump = OffsetInstruction(OPCODE.JNEQ, -length)
+        compare_commands_list.append(jump)
+        
+        return compare_commands_list
+
+    def process_if_condition(self, prev_len: int, node: BinaryOp) -> list[Instruction]:
+        left = node.get_left_node()
+        right = node.get_right_node()
+        operator = node.get_operator()
+        compare_commands_list = self.calculate_cmp(left, right)
+        length = len(compare_commands_list)
+        jump: Instruction
+        if (operator == "=="):
+            jump = OffsetInstruction(OPCODE.JNEQ, length)
+        elif (operator == "<"):
+            jump = OffsetInstruction(OPCODE.JPE, length)
+        elif (operator == ">"):
+            jump = OffsetInstruction(OPCODE.JNZ, length)
+        elif (operator == "<="):
+            jump = OffsetInstruction(OPCODE.JP, length)
+        elif (operator == ">="):
+            jump = OffsetInstruction(OPCODE.JN, length)
+        elif (operator == "!="):
+            jump = OffsetInstruction(OPCODE.JZ, length)
+        compare_commands_list.append(jump)
+
+        return compare_commands_list
+
+
+    def process_while_statement(self, node: WhileIfNode) -> None:
         condition = node.statement
         saved_state = self.commands.copy()
         self.commands = []
         self.ast_to_list(node)
         commands_len = len(self.commands)
-        process_statement()
+        self.commands += self.process_while_condition(commands_len, condition)
+        jmp = OffsetInstruction(OPCODE.JMP, len(self.commands))
+        self.commands = saved_state + [jmp] + self.commands
+        
+    
+    def process_if_statement(self, node: WhileIfNode) -> None:
+        condition = node.statement
+        saved_state = self.commands.copy()
+        self.commands = []
+        commands_len = len(self.commands)
+        self.commands += self.process_if_condition(commands_len, condition)
+        self.ast_to_list(node)
+        self.commands = saved_state + self.commands
+
+
+
 
     def translate_node(self, node: Node):
         if (isinstance(node, WhileIfNode)):
@@ -160,27 +237,35 @@ class Translator:
                 self.process_if_statement(node)
             else:
                 self.process_while_statement(node)
-        elif (isinstance(node, AssignNode)):
-            self.process_assign(node)
         elif (isinstance(node, InitNode)):
             self.process_initilization(node)
+        elif (isinstance(node, AssignNode)):
+            self.process_assign(node)
+        
 
         
     
     
 
-    def ast_to_list(self, node: Node):
+    def ast_to_list(self, node: Node) -> None:
         current_node = node
         if (isinstance(current_node, RootNode)):
-            children = current_node.children
+            children = current_node.childrens
             for node in children:
                 self.translate_node(node)
 
-nudes = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
-nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
-trans = Translator([])
-trans.process_initilization(nudes)
-trans.process_initilization(nudes1)
+# nudes = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+# nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
+                
+tokenizer = Tokenizer("""int i = 3 + 4;
+                      
+                      """)
+result = tokenizer.start_analyze()
+parser = AstParser(result)
+parsed = parser.parse_code()
+print(parsed)
+trans = Translator(parsed)
+trans.ast_to_list(trans.ast)
 for i in trans.commands:
     print(i)
 
