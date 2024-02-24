@@ -47,6 +47,63 @@ print(main())
 
 
 
+def foo():
+    res = 1;
+    tmp_res = 0
+    i = 2
+    while (i <= 20):
+        m = res
+        n = i
+        while (m and n):
+            if (m < n):
+                n = n % m
+            else:
+                m = m % n
+        if (m == 0):
+            tmp_res = n
+        if (m != 0):
+            tmp_res = m
+        m = res
+        n = i
+        tmp_res = (m / tmp_res) * i
+        
+        res = tmp_res
+        i += 1
+    print(res)
+        
+foo()
+
+
+int res = 1;
+int tmpres = 0;
+int i = 2;
+int m = 0;
+int n = 0;
+int cond = 1;
+while (i <= 20) {
+    m = res;
+    n = i;
+    cond = m and n;
+    while (cond != 0) {
+        if (m < n) {
+            n = n % m;
+        } else {
+            m = m % n;
+        }
+    }
+    if (m == 0) {
+        tmpres = n;
+    } else {
+        tmpres = m;
+    }
+    tmpres = m / tmpres;
+    tmpres = tmpres * i;
+    res = tmpres;
+    i = i + 1;
+}
+
+print (res)
+        
 # int main(int argc, const char * argv[])
 # {
 #     int Res = 1;

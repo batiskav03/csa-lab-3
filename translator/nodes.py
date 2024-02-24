@@ -20,17 +20,30 @@ class RootNode(Node):
             node_str += str(node) + ", \n"
         return "{ " + node_str + "}"
 
+class ElseNode(RootNode):
+    def __init__(self):
+        super().__init__()
+
 class WhileIfNode(RootNode):
-    def __init__(self, statement: Node ,token: Token):
+    def __init__(self, statement: Node ,token: Token, else_node: ElseNode = None ):
         super(WhileIfNode, self).__init__()
         self.token: Token = token
         self.statement: Node = statement
+        self.else_node: ElseNode = else_node
+    
+    def set_else_block(self, node: ElseNode) -> None:
+        self.else_node = node
         
     def __str__(self) -> str:
         node_str = ""
         for node in self.childrens:
             node_str += str(node) + ", \n"
         return f"( {self.token.token_type.name.name} statement: [{self.statement}] \n: {node_str}  )"
+    
+class ElseNode(RootNode):
+    def __init__(self):
+        super().__init__()
+        
     
     
 class NumberNode(Node):
@@ -72,6 +85,19 @@ class BinaryOp(Node):
     def __str__(self) -> str:
         return f"BinaryOperation: ( \n     left node: {self.left_node} \n       operator: {self.operator} \n        right node: {self.right_node}"
 
+class PrintNode(Node):
+    def __init__(self, string: Token):
+        super().__init__()
+        self.string: Token = string
+        
+    def get_token_type(self):
+        return self.string.token_type
+    
+    def get_token_text(self):
+        return self.string.text
+    
+    def __str__(self) -> str:
+        return f" PrintNode: {self.get_token_type()}: {self.string.text}"
 
 class AssignNode(Node):
     def __init__(self, variable: VariableNode, right_part: Node):

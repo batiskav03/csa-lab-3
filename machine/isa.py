@@ -9,11 +9,11 @@ from enum import Enum
 
 # Машинное слово - non-fixed 32 - бит  : 
 # |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  opt:|9------- | 10------- | 11------- | 12------- | 
-# |    opcode     | regs | regs |
-#                 |    offset   |       address      |                               |                     value                   |
-#                 | regs |       address      |
-#                 |       address      |
-#                 | regs        |                               
+# |    opcode     | regs | regs |                               |                     value                   |
+#                 |    offset   |       address      |          |                     value                   |
+#                 | regs |       address      |                 |                     value                   |
+#                 |       address      |                        |                     value                   |
+#                 | regs        |                               |                     value                   |       
 
 
 # | mnemonic | opcode (HEX) | definition |
@@ -35,6 +35,9 @@ from enum import Enum
 # | JP | 0E | jump positive |
 # | HLT| 0F | halt |
 # | IMOV | 10 | move value by <adress> = <rbp> - <value_offset> to rax|
+# | MOVV | 11 | move absolute value to <adress> = <rbp> - <var_offset> |
+# | MOVA | 12 | move rax to <adress> = <rbp> - <var_offset> |
+# | MOVVA | 13 | move absolure value to rax |
 # | ICMP | 1B | cmp value by <adress> = <rbp> - <value_offset> with rax|
 # | JNEQ | 1C | jump not equal|
 # | JNE | 1D | jump negative or equal|
@@ -49,8 +52,13 @@ from enum import Enum
 # | IMULVAL | 41 | multiply rax with <value>  |
 # | IDIV| 50 | divide rax with value by <adress> |
 # | IDIVVAL | 51 | divide rax with <value>  |
-# | MOVV | 11 | move absolute value to <adress> = <rbp> - <var_offset> |
-# | MOVA | 12 | move rax to <adress> = <rbp> - <var_offset> |
+# | IMOD | 60 | mod rax with value by <adress> |
+# | IMODVAL | 61 | mod rax with <value>  |
+# | IAND | 70 | AND rax with value by <adress>  |
+# | IANDVAL | 71 | AND rax with <value>  |
+
+
+
 
 
 # - rax - регистр общего назначения, используемый при арифмитических операциях
@@ -89,6 +97,10 @@ class OPCODE(Enum):
     IMOV = 16,
     MOVV = 17,
     MOVA = 18,
+    MOVVA = 19,
+    PUSHA = 20,
+    POPA = 21,
+    PEEKA = 16,
     ICMP = 27,
     JNEQ = 28,
     JNE = 29,
@@ -102,7 +114,11 @@ class OPCODE(Enum):
     IMUL = 64,
     IMULVAL = 65,
     IDIV = 80,
-    IDIVVAL = 81
+    IDIVVAL = 81,
+    IMOD = 96,
+    IMODVAL = 97,
+    IAND = 112,
+    IANDVAL = 113
     
 class SecondWord:
     def __init__(self, data: int) -> None:
