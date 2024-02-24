@@ -43,13 +43,13 @@ number ::= [0-9]*
 litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
 ```
-Машинное слово - non-fixed 16 - 32 бит  : 
-|1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  |  
-|    opcode     | regs | regs |
-                |    offset   |
-                | regs |       address      |
-                |       address      |
-                | regs |             value                |
+Машинное слово - non-fixed 32 - бит  : 
+|1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  opt:|9------- | 10------- | 11------- | 12------- | 
+|    opcode     | regs | regs |                               |                     value                   |
+                |    offset   |       address      |          |                     value                   |
+                | regs |       address      |                 |                     value                   |
+                |       address      |                        |                     value                   |
+                | regs        |                               |                     value                   |  
 ```
 -Система команд:
 
