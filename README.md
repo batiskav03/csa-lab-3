@@ -162,3 +162,9 @@ constrol bits mov 1001 - reg -> adress
 | 65536   :^   stack                            |
 +-----------------------------------------------+
 ```
+
+## Модель процессора
+**DataPath**
+![DataPath](./img/data_path.jpeg)
+**ControlUnit**
+![ControlUnit](./img/control_unit.jpeg)
