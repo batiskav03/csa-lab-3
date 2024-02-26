@@ -1,5 +1,6 @@
 from __future__ import annotations
-from enum import Enum
+from enum import IntEnum
+import struct
 # Машинное слово - non-fixed от 2 до 4 байт: 
 # |1---   |2---   |3---  |4---  |     |5---  |6---  |7---  |8---  |
 # |opcode |ad.mode| regs | 
@@ -9,7 +10,7 @@ from enum import Enum
 
 # Машинное слово - non-fixed 32 - бит  : 
 # |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  opt:|9------- | 10------- | 11------- | 12------- | 
-# |    opcode     | regs | regs |                               |                     value                   |
+# |    opcode     |  | regs |                               |                     value                   |
 #                 |    offset   |       address      |          |                     value                   |
 #                 | regs |       address      |                 |                     value                   |
 #                 |       address      |                        |                     value                   |
@@ -61,6 +62,8 @@ from enum import Enum
 
 
 
+
+
 # - rax - регистр общего назначения, используемый при арифмитических операциях
 # - rbx - регистр общего назначения
 # - rdx - регистр общего назначения
@@ -68,57 +71,61 @@ from enum import Enum
 # - rsp - указатель стека
 
 MAX_VALUE = 2**32
-MEMORY_SIZE = 4096
+MEMORY_SIZE = 65536
+BUFFER_START = 40000
+BUFFER_END = 44999
 
-class REGISTERS(Enum):
-    RAX = 0,
-    RBX = 1,
-    RDX = 2,
-    RCX = 3,
+class REGISTERS(IntEnum):
+    RAX = 0
+    RBX = 1
+    RDX = 2
+    RCX = 3
     RSP = 4
 
-class OPCODE(Enum): 
-    NOP =  0,
-    MOV = 1,
-    ADD = 2,
-    SUB = 3,
-    MUL = 4,
-    DIV = 5,
-    MOD = 6,
-    AND = 7,
-    OR = 8,
-    NOT = 9,
-    CMP = 10,
-    JMP = 11,
-    JZ = 12,
-    JN = 13,
-    JP = 14,
-    HLT = 15,
-    IMOV = 16,
-    MOVV = 17,
-    MOVA = 18,
-    MOVVA = 19,
-    PUSHA = 20,
-    POPA = 21,
-    PEEKA = 16,
-    ICMP = 27,
-    JNEQ = 28,
-    JNE = 29,
-    JPE = 30,
-    JNZ = 31,
-    CMPA = 43,
-    IADD = 32,
-    IADDVAL = 33,
-    ISUB = 48,
-    ISUBVAL = 49,
-    IMUL = 64,
-    IMULVAL = 65,
-    IDIV = 80,
-    IDIVVAL = 81,
-    IMOD = 96,
-    IMODVAL = 97,
-    IAND = 112,
+class OPCODE(IntEnum): 
+    NOP =  0
+    MOV = 1
+    ADD = 2
+    SUB = 3
+    MUL = 4
+    DIV = 5
+    MOD = 6
+    AND = 7
+    OR = 8
+    NOT = 9
+    CMP = 10
+    JMP = 11
+    JZ = 12
+    JN = 13
+    JP = 14
+    HLT = 15
+    IMOV = 16
+    MOVV = 17
+    MOVA = 18
+    MOVVA = 19
+    PUSHA = 20
+    POPA = 21
+    PEEKA = 16
+    ICMP = 27
+    JNEQ = 28
+    JNE = 29
+    JPE = 30
+    JNZ = 31
+    CMPA = 43
+    IADD = 32
+    IADDVAL = 33
+    ISUB = 48
+    ISUBVAL = 49
+    IMOVSP = 50
+    IMUL = 64
+    IMULVAL = 65
+    IDIV = 80
+    IDIVVAL = 81
+    IMOD = 96
+    IMODVAL = 97
+    IAND = 112
     IANDVAL = 113
+    INC = 128
     
 class SecondWord:
     def __init__(self, data: int) -> None:
@@ -127,43 +134,53 @@ class SecondWord:
     def __str__(self) -> str:
         return f" value: {self.data} "
     
+    def get_bytes_value(self) -> bytes:
+        return struct.pack(">i", self.data)
+
+        
+    
 class Instruction:
 
-    def __init__(self, opcode: int):
-        self.opcode: int = opcode
+    def __init__(self, opcode: OPCODE):
+        self.opcode: OPCODE = opcode
         
     def __str__(self) -> str:
         return f"opcode: { self.opcode }"
+    
+    def get_bytes_value(self) -> bytes:
+        return struct.pack(">Bxxx", self.opcode.value)
 
         
 class OffsetInstruction(Instruction):
-    def __init__(self, opcode: int, offset: int):
+    def __init__(self, opcode: OPCODE ,offset: int):
         super().__init__(opcode)
+        
         self.offset: int = offset
 
     def __str__(self) -> str:
         return f"opcode: {self.opcode} offset: {self.offset}"
-
-class DoubleRegsInstruction(Instruction):
-
-    def __init__(self, opcode: int, first_register: int, second_register: int):
+    
+    def get_bytes_value(self) -> bytes:
+        return struct.pack(">Bbxx", self.opcode.value, self.offset)
+    
+class AdModRegAdressInstruction(Instruction):
+    
+    def __init__(self, opcode: OPCODE, adress_mode: int, reg: REGISTERS, adress):
         super().__init__(opcode)
-        self.first_register: int = first_register
-        self.second_register: int = second_register
-
-class DoubleRegsAndAdressInstruction(DoubleRegsInstruction):
-
-    def __init__(self, opcode: int, first_register: int, second_register: int, adress: int):
-        super().__init__(opcode, first_register, second_register)
+        self.adress_mode: int = adress_mode
+        self.reg: REGISTERS = reg
         self.adress: int = adress
+        
+    def __str__(self) -> str:
+        return f"opcode: {self.opcode} adress_mode: {self.adress_mode} reg: {self.reg} adress: {self.adress}"
+    
+    def get_bytes_value(self) -> bytes:
+        to_byte_admod_reg = self.adress_mode * 16 + self.reg
+        return struct.pack(">BBH", self.opcode, to_byte_admod_reg, self.adress)
 
 
-class AdressInstruction(Instruction):
 
-    def __init__(self, opcode: int, first_ad: int, second_ad: int, value: int= None , third_ad: int= None):
-        super().__init__(opcode)
-        self.first_ad: int = first_ad
-        self.second_ad: int = second_ad
-        # todo: в зависимости от типа адресации чекать на прямую загрузку или третий адрес
+
+
         
     

@@ -8,6 +8,7 @@ class TokenEnum(Enum):
     TYPE = "TYPE" # int, char , string
     STRING = "STRING"
     PRINT = "PRINT"
+    READ = "READ"
     IF = "IF" # if
     ELSE = "ELSE" # if
     WHILE = "WHILE" # while 

@@ -1,6 +1,6 @@
 import sys
 sys.path.append("../csa-lab-3")
-from machine.isa import Instruction, OPCODE, MEMORY_SIZE, REGISTERS, OffsetInstruction, SecondWord, MAX_VALUE
+from machine.isa import AdModRegAdressInstruction, Instruction, OPCODE, MEMORY_SIZE, REGISTERS, OffsetInstruction, SecondWord, MAX_VALUE, BUFFER_START, BUFFER_END
 from lexer import Token, TokenType
 from nodes import AssignNode, BinaryOp, InitNode, Node, NumberNode, RootNode, VariableNode, WhileIfNode, PrintNode
 from lexer import TokenEnum, Tokenizer
@@ -14,9 +14,9 @@ class Translator:
         self.ast: Node = ast
         self.commands: list[Instruction] = []
         self.stack_pointer: int = 0
+        self.buffer_pointer: int = BUFFER_START
         self.variable_offset: dict[str, int] = {}
         
-
 
 
     
@@ -119,7 +119,7 @@ class Translator:
         mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
         self.commands += [mov_to_rax, mov_rax_to_mem]
     
-    def process_initilization(self, node: InitNode) -> None:
+    def process_int_initilization(self, node: InitNode) -> None:
         variable_node = node.variable
         var_str = variable_node.var.text
         right_part = node.right_part
@@ -255,16 +255,34 @@ class Translator:
 
     def process_output(self, node: PrintNode):
         type = node.get_token_type()
-        commands: list[Instruction]
+        commands: list[Instruction] = []
         if (type == TokenEnum.STRING):
             text = node.get_token_text()
             for ch in text:
-                commands.append(SecondWord(ch))
+                if (ch != '\''):
+                    commands.append(SecondWord(ord(ch)))
             commands.append(SecondWord(0))
             length = len(commands)
-            jump = OffsetInstruction(OPCODE.JMP, length)
-            
-                
+            jump = OffsetInstruction(OPCODE.JMP, length + 1)
+            commands = [jump] + commands
+            movva = Instruction(OPCODE.MOVVA)
+            movva_data = SecondWord(len(self.commands) - len(commands))
+            pusha = Instruction(OPCODE.PUSHA)
+            imovsp = Instruction(OPCODE.IMOVSP)
+            mov_to_buff = AdModRegAdressInstruction(OPCODE.MOV, 9, REGISTERS.RAX, self.buffer_pointer)
+            cmpa = Instruction(OPCODE.CMPA)
+            cmpa_data = SecondWord(0)
+            commands_after_string = [movva, movva_data, pusha, imovsp,
+                                     mov_to_buff, cmpa, cmpa_data]
+            pop = Instruction(OPCODE.POPA)
+            inc = Instruction(OPCODE.INC)
+            command_after_jump = [pop, inc, pusha]
+            jz = OffsetInstruction(OPCODE.JZ, len(command_after_jump) + 2)
+            commands_after_string.append(jz)
+            jmp = OffsetInstruction(OPCODE.JMP, -(len(command_after_jump) + len(commands_after_string) - 3))
+            command_after_jump.append(jmp)
+            commands = commands + commands_after_string + command_after_jump
+            self.commands += commands
             
         else:
             pass
@@ -278,7 +296,7 @@ class Translator:
             else:
                 self.process_while_statement(node)
         elif (isinstance(node, InitNode)):
-            self.process_initilization(node)
+            self.process_int_initilization(node)
         elif (isinstance(node, AssignNode)):
             self.process_assign(node)
         elif (isinstance(node, PrintNode)):
@@ -300,33 +318,7 @@ class Translator:
 # nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
                 
 tokenizer = Tokenizer("""
-int res = 1;
-int tmpres = 0;
-int i = 2;
-int m = 0;
-int n = 0;
-int cond = 1;
-while (i <= 20) {
-    m = res;
-    n = i;
-    cond = m and n;
-    while (cond != 0) {
-        if (m < n) {
-            n = n % m;
-        } else {
-            m = m % n;
-        }
-    }
-    if (m == 0) {
-        tmpres = n;
-    } else {
-        tmpres = m;
-    }
-    tmpres = m / tmpres;
-    tmpres = tmpres * i;
-    res = tmpres;
-    i = i + 1;
-}
+                      
                       """)
 result = tokenizer.start_analyze()
 j = 0
@@ -335,16 +327,25 @@ parsed = parser.parse_code()
 trans = Translator(parsed)
 trans.ast_to_list(trans.ast)
 for i in trans.commands:
-    print(i)
+    print(f"adress => {j} : {i} : {i.get_bytes_value()}")
+    j+=1
 
-# def main(source, target):
-#     with open(source, encoding="UTF-8") as f:
-#         code = f.read()
-#     tokens = Tokenizer(code).start_analyze()
-#     ast_tree = AstParser(tokens).parse_code()
-#     instr_list = Translator(ast_tree).ast_to_list()
+def main(source, target):
+    with open(source, encoding="UTF-8") as fr:
+        code = fr.read()
+    tokens = Tokenizer(code).start_analyze()
+    ast_tree = AstParser(tokens).parse_code()
+    instr_list = Translator(ast_tree)
+    instr_list.ast_to_list(instr_list.ast)
+    instr_list = instr_list.commands
+    with open(target, "br+") as fw:
+        for instruction in instr_list:
+            print(instruction)
+            fw.write(instruction.get_bytes_value())
+        
+        
 
-# if __name__ == "__main__":
-#     assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
-#     _, source, target = sys.argv
-#     main(source, target)
+if __name__ == "__main__":
+    assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
+    _, source, target = sys.argv
+    main(source, target)

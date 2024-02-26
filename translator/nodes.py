@@ -66,6 +66,8 @@ class VariableNode(Node):
     
     def __str__(self) -> str:
         return f"VariableNode:  [ type: {self.type}  value: {self.var}  ]"
+    
+
         
 class BinaryOp(Node):
     def __init__(self, operator: Token, left_node: Node, right_node: Node):
@@ -91,13 +93,28 @@ class PrintNode(Node):
         self.string: Token = string
         
     def get_token_type(self):
-        return self.string.token_type
+        return self.string.token_type.name
     
     def get_token_text(self):
         return self.string.text
     
     def __str__(self) -> str:
         return f" PrintNode: {self.get_token_type()}: {self.string.text}"
+    
+class ReadNode(Node):
+    def __init__(self, variable: Token):
+        super().__init__()
+        self.string: Token = variable
+        
+    def get_token_type(self):
+        return self.variable.token_type.name
+    
+    def get_token_text(self):
+        return self.variable.text
+    
+    def __str__(self) -> str:
+        return f" PrintNode: {self.get_token_type()}: {self.variable.text}"
+    
 
 class AssignNode(Node):
     def __init__(self, variable: VariableNode, right_part: Node):
