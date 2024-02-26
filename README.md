@@ -164,6 +164,6 @@ constrol bits mov 1001 - reg -> adress
 
 ## Модель процессора
 **DataPath**
-(./img/data_path.jpeg)
+![DataPath](./img/data_path.jpeg)
 **ControlUnit**
-(./img/control_unit.jpeg)
+![ControlUnit](./img/control_unit.jpeg)
