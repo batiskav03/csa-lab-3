@@ -137,7 +137,7 @@ class AstParser:
 
 
 tokenizer = Tokenizer("""
-                      print(i);
+                      print('xyi');
                       """)
 result = tokenizer.start_analyze()
 j = 0
