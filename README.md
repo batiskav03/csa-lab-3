@@ -76,32 +76,32 @@ constrol bits mov 1001 - reg -> adress
 | JN | 0D | jump negative |
 | JP | 0E | jump positive |
 | HLT| 0F | halt |
-| IMOV | 10 | move value by <adress> = <rbp> - <value_offset> to rax|
-| MOVV | 11 | move absolute value to <adress> = <rbp> - <var_offset> |
-| MOVA | 12 | move rax to <adress> = <rbp> - <var_offset> |
+| IMOV | 10 | move value by adress = rbp - value_offset to rax|
+| MOVV | 11 | move absolute value to adress = rbp - var_offset |
+| MOVA | 12 | move rax to adress = rbp - var_offset |
 | MOVVA | 13 | move absolute value to rax |
 | PUSHA | 14 | push rax value by rsp, rsp = rsp - 1 |
 | POPA | 15 | pop value on rsp to rax, rsp = rsp + 1 |
 | PEEKA | 16 | peek value from rsp to rax without changing rsp|
-| ICMP | 1B | cmp value by <adress> = <rbp> - <value_offset> with rax|
+| ICMP | 1B | cmp value by adress = (rbp - value_offset) with rax|
 | JNEQ | 1C | jump not equal|
 | JNE | 1D | jump negative or equal|
 | JPE | 1E | jump positive or equal |
 | JNZ | 1F | jump not zero |
 | CMPA | 2B | cmp rax with absolute value |
-| IADD | 20 | summary rax with value by <adress> |
-| IADDVAL | 21 | summary rax with <value>  | 
-| ISUB | 30 | subtract rax with value by <adress>|
-| ISUBVAL | 31 | substact rax with <value>  | delite
-| IMOVSP | 32 | move operand from <adress> = <rsp> to rax |
-| IMUL | 40 | multiply rax with value by <adress>|
-| IMULVAL | 41 | multiply rax with <value>  |
-| IDIV| 50 | divide rax with value by <adress> |
-| IDIVVAL | 51 | divide rax with <value>  |
-| IMOD | 60 | mod rax with value by <adress> |
-| IMODVAL | 61 | mod rax with <value>  |
-| IAND | 70 | AND rax with value by <adress>  |
-| IANDVAL | 71 | AND rax with <value>  |
+| IADD | 20 | summary rax with value by adress |
+| IADDVAL | 21 | summary rax with value  | 
+| ISUB | 30 | subtract rax with value by adress|
+| ISUBVAL | 31 | substact rax with value  |
+| IMOVSP | 32 | move operand from adress = rsp to rax |
+| IMUL | 40 | multiply rax with value by adress|
+| IMULVAL | 41 | multiply rax with value  |
+| IDIV| 50 | divide rax with value by adress |
+| IDIVVAL | 51 | divide rax with value  |
+| IMOD | 60 | mod rax with value by adress |
+| IMODVAL | 61 | mod rax with value  |
+| IAND | 70 | AND rax with value by adress  |
+| IANDVAL | 71 | AND rax with value  |
 | INC | 80 | inc rax | 
 
 
