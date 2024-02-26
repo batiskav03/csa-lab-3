@@ -39,7 +39,7 @@ import struct
 # | MOVV | 11 | move absolute value to <adress> = <rbp> - <var_offset> |
 # | MOVA | 12 | move rax to <adress> = <rbp> - <var_offset> |
 # | MOVVA | 13 | move absolure value to rax |
-# | ICMP | 1B | cmp value by <adress> = <rbp> - <value_offset> with rax|
+# | ICMP | 1B | cmp value by xfx|
 # | JNEQ | 1C | jump not equal|
 # | JNE | 1D | jump negative or equal|
 # | JPE | 1E | jump positive or equal |
