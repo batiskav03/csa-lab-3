@@ -318,7 +318,10 @@ class Translator:
 # nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
                 
 tokenizer = Tokenizer("""
-                      
+                    int i = 0;
+                    int j = 1;
+                    int l = 123;
+                    j = j + l;
                       """)
 result = tokenizer.start_analyze()
 j = 0

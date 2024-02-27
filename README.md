@@ -45,12 +45,10 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
 Машинное слово - non-fixed 32 - бит  : 
 |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8--- | opt:|9------- | 10------- | 11------- | 12------- | 
-|    opcode     | cntrl| reg  |           adress         |                               
-                |    offset   |                                |                     value                   |
-                | regs |       address      |                  |                     value                   |
-                |       address      |                         |                     value                   |
-                | regs        |                                |                     value                   |  
-                |           adress         |
+|    opcode     | cntrl| reg  |           adress         |     |                     value                   |
+                | cntrl| reg  |           offset         |     |                     value                   |
+                | cntrl| reg  | reg  |
+                
 ```
 
 control bits 0010 - относительная
@@ -89,18 +87,18 @@ constrol bits mov 1001 - reg -> adress
 | JPE | 1E | jump positive or equal |
 | JNZ | 1F | jump not zero |
 | CMPA | 2B | cmp rax with absolute value |
-| IADD | 20 | summary rax with value by adress |
+| IADD | 20 | summary rax with value by adress = rbp - value_offset|
 | IADDVAL | 21 | summary rax with value  | 
-| ISUB | 30 | subtract rax with value by adress|
+| ISUB | 30 | subtract rax with value by adress = rbp - value_offset|
 | ISUBVAL | 31 | substact rax with value  |
 | IMOVSP | 32 | move operand from adress = rsp to rax |
-| IMUL | 40 | multiply rax with value by adress|
+| IMUL | 40 | multiply rax with value by adress = rbp - value_offset|
 | IMULVAL | 41 | multiply rax with value  |
-| IDIV| 50 | divide rax with value by adress |
+| IDIV| 50 | divide rax with value by adress = rbp - value_offset|
 | IDIVVAL | 51 | divide rax with value  |
-| IMOD | 60 | mod rax with value by adress |
+| IMOD | 60 | mod rax with value by adress = rbp - value_offset|
 | IMODVAL | 61 | mod rax with value  |
-| IAND | 70 | AND rax with value by adress  |
+| IAND | 70 | AND rax with value by adress = rbp - value_offset|
 | IANDVAL | 71 | AND rax with value  |
 | INC | 80 | inc rax | 
 

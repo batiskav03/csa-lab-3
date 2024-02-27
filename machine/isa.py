@@ -161,7 +161,7 @@ class OffsetInstruction(Instruction):
         return f"opcode: {self.opcode} offset: {self.offset}"
     
     def get_bytes_value(self) -> bytes:
-        return struct.pack(">Bbxx", self.opcode.value, self.offset)
+        return struct.pack(">Bxh", self.opcode.value, self.offset)
     
 class AdModRegAdressInstruction(Instruction):
     
