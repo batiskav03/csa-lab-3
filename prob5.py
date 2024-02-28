@@ -96,13 +96,15 @@ while (i <= 20) {
     } else {
         tmpres = m;
     }
+    m = res
+    n = i
     tmpres = m / tmpres;
     tmpres = tmpres * i;
     res = tmpres;
     i = i + 1;
 }
 
-print (res)
+
         
 # int main(int argc, const char * argv[])
 # {

@@ -51,9 +51,11 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
                 
 ```
 
-control bits 0010 - относительная
-control bits 0100 - косвенная
-constrol bits mov 1001 - reg -> adress
+control bits 0010 - относительная  
+control bits 0100 - косвенная  
+control bits mov 1001 - reg -> adress  
+control bits mov 1100 - reg <- immid.value
+
 -Система команд:
 
 | mnemonic | opcode (HEX) | definition |

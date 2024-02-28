@@ -57,7 +57,7 @@ class DataPath:
             REGISTERS.RBX: 0,
             REGISTERS.RCX: 0,
             REGISTERS.RDX: 0,
-            REGISTERS.RSP: 0
+            REGISTERS.RSP: MEMORY_SIZE
         }
         
     def get_DR(self) -> bytes:
@@ -69,7 +69,7 @@ class DataPath:
     def latch_AR(self, value: int) -> None:
         self.AR = value
     
-    def get_register(self, reg: REGISTERS) -> int:
+    def get_register(self, reg: REGISTERS ) -> int:
         return self.regs[reg]
     
     def latch_register(self, reg: REGISTERS, value: int) -> int:

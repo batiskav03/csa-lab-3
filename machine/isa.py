@@ -71,6 +71,7 @@ import struct
 # - rsp - указатель стека
 
 MAX_VALUE = 2**32
+MAX_OFFSET = 2**15
 MEMORY_SIZE = 65536
 BUFFER_START = 40000
 BUFFER_END = 44999
@@ -105,7 +106,7 @@ class OPCODE(IntEnum):
     MOVVA = 19
     PUSHA = 20
     POPA = 21
-    PEEKA = 16
+    PEEKA = 22
     ICMP = 27
     JNEQ = 28
     JNE = 29
@@ -162,6 +163,18 @@ class OffsetInstruction(Instruction):
     
     def get_bytes_value(self) -> bytes:
         return struct.pack(">Bxh", self.opcode.value, self.offset)
+    
+class OffsetInstructionWithAdMon(OffsetInstruction):
+    def __init__(self, opcode: OPCODE, adress_mode: int, offset: int):
+        super().__init__(opcode, offset)
+        self.adress_mode: int = adress_mode
+        
+    def __str__(self) -> str:
+        return f"opcode: {self.opcode} admod: {self.adress_mode} offset: {self.offset}"
+    
+    def get_bytes_value(self) -> bytes:
+        return struct.pack(">BBh", self.opcode.value, self.adress_mode << 4, self.offset)
+    
     
 class AdModRegAdressInstruction(Instruction):
     
