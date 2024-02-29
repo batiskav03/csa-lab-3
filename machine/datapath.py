@@ -1,8 +1,12 @@
-import struct
-from typing import Callable
-from typing import ClassVar
-from isa import BUFFER_END, BUFFER_START, MEMORY_SIZE, REGISTERS
+from __future__ import annotations
 
+import sys
+
+sys.path.append("../csa-lab-3")
+import struct
+from typing import Callable, ClassVar
+
+from isa import BUFFER_END, BUFFER_START, MEMORY_SIZE, REGISTERS
 
 alu_operations: dict[str, Callable[[int, int], int]] = {
     "+": lambda left, right: left + right,
@@ -25,6 +29,7 @@ class ALU:
         self.set_flags(result)
         return result
         pass
+        return None
 
     def set_flags(self, value: int) -> None:
         self.Z = 1 if value == 0 else 0
@@ -37,18 +42,17 @@ class ALU:
         return self.N
 
     def get_offset(self, unpacked: int) -> int:
-        BIT_MASK = 65535
-        unpacked &= BIT_MASK
+        bit_mask = 65535
+        unpacked &= bit_mask
         return unpacked
         pass
+        return None
 
 
 class DataPath:
     def __init__(self, program_memory: list[bytes], input_file: str) -> None:
         self.alu = ALU()
-        self.memory: list[bytes] = program_memory + [b"\x00\x00\x00\x00"] * (
-            MEMORY_SIZE - len(program_memory)
-        )
+        self.memory: list[bytes] = program_memory + [b"\x00\x00\x00\x00"] * (MEMORY_SIZE - len(program_memory))
         self.AR: int = 0
         self.DR: bytes = 0
         self.device = DeviceIO(input_file)
@@ -60,13 +64,13 @@ class DataPath:
             REGISTERS.RSP: MEMORY_SIZE - 1,
         }
 
-    def get_DR(self) -> bytes:
+    def get_dr(self) -> bytes:
         return self.DR
 
-    def get_int_DR(self) -> int:
+    def get_int_dr(self) -> int:
         return struct.unpack(">i", self.DR)[0]
 
-    def latch_AR(self, value: int) -> None:
+    def latch_ar(self, value: int) -> None:
         self.AR = value
 
     def get_register(self, reg: REGISTERS) -> int:
@@ -79,13 +83,13 @@ class DataPath:
         return self.memory[self.AR]
 
     def read_cur_command(self) -> None:
-        self.latch_DR(self.get_cur_data())
+        self.latch_dr(self.get_cur_data())
 
-    def latch_DR(self, command: bytes) -> None:
+    def latch_dr(self, command: bytes) -> None:
         self.DR = command
 
     def write_memory(self) -> None:
-        self.memory[self.AR] = self.get_DR()
+        self.memory[self.AR] = self.get_dr()
 
     def output(self, value: int) -> None:
         if value == 1 and self.device.output_type != "int":

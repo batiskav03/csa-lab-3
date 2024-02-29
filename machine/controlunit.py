@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import struct
+
 from datapath import DataPath
 from isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS
 
@@ -68,7 +71,7 @@ class ControlUnit:
     def start_processering(self) -> None:
         while self.cur_tick() < self.limit:
             print(
-                f"current tick: {self.cur_tick()} PC: {self.PC} RAX: {self.data_path.get_register(REGISTERS.RAX)} RBX: {self.data_path.get_register(REGISTERS.RBX)} DR: {self.data_path.get_DR()} AR: {self.data_path.AR} input_buff: {self.data_path.device.input_buffer}"
+                f"current tick: {self.cur_tick()} PC: {self.PC} RAX: {self.data_path.get_register(REGISTERS.RAX)} RBX: {self.data_path.get_register(REGISTERS.RBX)} DR: {self.data_path.get_dr()} AR: {self.data_path.AR} input_buff: {self.data_path.device.input_buffer}"
             )
             self.instruction_fetch()
             self.PC += 1
@@ -76,9 +79,9 @@ class ControlUnit:
         print(f"output: {self.data_path.device.output_buffer}")
 
     def instruction_fetch(self):
-        self.data_path.latch_AR(self.PC)
+        self.data_path.latch_ar(self.PC)
         self.data_path.read_cur_command()
-        self.instr = self.data_path.get_DR()
+        self.instr = self.data_path.get_dr()
         self.inc_tick()
 
     def decode_fetch(self):
@@ -104,7 +107,7 @@ class ControlUnit:
         # operand fetch
         self.i_commands_op(bytes_command_arr)
         # execution fetch
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_dr())
         self.inc_tick()
         pass
 
@@ -130,49 +133,41 @@ class ControlUnit:
         # operand fetch
         self.i_commands_op(bytes_command_arr)
         # execution fetch
-        dr_int = self.data_path.get_int_DR()
+        dr_int = self.data_path.get_int_dr()
         rax_int = self.data_path.get_register(REGISTERS.RAX)
-        self.data_path.latch_register(
-            REGISTERS.RAX, self.data_path.alu.do(operator, rax_int, dr_int)
-        )
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.alu.do(operator, rax_int, dr_int))
         self.inc_tick()
 
     def i_commands_op(self, bytes_command_arr: bytes) -> None:
         # finally, data from <adress> = <rbp> - <offset> in DR
         self.calculate_variable_adress(bytes_command_arr)
-        self.data_path.latch_DR(self.data_path.get_cur_data())
+        self.data_path.latch_dr(self.data_path.get_cur_data())
         self.inc_tick()
 
     def calculate_variable_adress(self, bytes_command_arr: bytes) -> None:
         # finally, <adress> = <rbp> - <offset> in AR
-        self.data_path.latch_register(
-            REGISTERS.RDX, self.data_path.alu.get_offset(self.data_path.get_int_DR())
-        )
+        self.data_path.latch_register(REGISTERS.RDX, self.data_path.alu.get_offset(self.data_path.get_int_dr()))
         self.inc_tick()
         rdx_int = self.data_path.get_register(REGISTERS.RDX)
         rbx_int = self.data_path.get_register(REGISTERS.RBX)
-        self.data_path.latch_AR(self.data_path.alu.do("+", rdx_int, rbx_int))
+        self.data_path.latch_ar(self.data_path.alu.do("+", rdx_int, rbx_int))
         self.inc_tick()
 
     def call_movv(self, bytes_command_arr: bytes) -> None:  # 64 bit instruction
         # operand fetch
-        self.data_path.latch_register(
-            REGISTERS.RDX, self.data_path.alu.get_offset(self.data_path.get_int_DR())
-        )
+        self.data_path.latch_register(REGISTERS.RDX, self.data_path.alu.get_offset(self.data_path.get_int_dr()))
         self.inc_tick()
         rdx_int = self.data_path.get_register(REGISTERS.RDX)
         rbx_int = self.data_path.get_register(REGISTERS.RBX)
-        self.data_path.latch_register(
-            REGISTERS.RDX, self.data_path.alu.do("+", rdx_int, rbx_int)
-        )
+        self.data_path.latch_register(REGISTERS.RDX, self.data_path.alu.do("+", rdx_int, rbx_int))
         self.inc_tick()
-        self.data_path.latch_AR(self.PC)
+        self.data_path.latch_ar(self.PC)
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
         self.PC += 1
         # execution fetch
-        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RDX))
+        self.data_path.latch_ar(self.data_path.get_register(REGISTERS.RDX))
         self.inc_tick()
         self.data_path.write_memory()
 
@@ -188,35 +183,31 @@ class ControlUnit:
         offset_or_address = instr & 65535
         if controll_bits == 2:
             offset_or_address = unassigned_to_int(offset_or_address)
-            self.data_path.latch_AR(
-                self.data_path.alu.do("+", self.PC, offset_or_address)
-            )
+            self.data_path.latch_ar(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
             self.inc_tick()
-            self.data_path.latch_register(reg1, self.data_path.get_int_DR)
+            self.data_path.latch_register(reg1, self.data_path.get_int_dr)
         if controll_bits == 9:
-            self.data_path.latch_AR(offset_or_address)
+            self.data_path.latch_ar(offset_or_address)
             self.inc_tick()
-            self.data_path.latch_DR(
-                struct.pack(">i", self.data_path.get_register(reg1))
-            )
+            self.data_path.latch_dr(struct.pack(">i", self.data_path.get_register(reg1)))
             self.inc_tick()
             self.data_path.write_memory()
             self.inc_tick()
             if BUFFER_START <= offset_or_address <= BUFFER_END:
                 self.data_path.output(self.data_path.get_register(reg1))
         if controll_bits == 12:
-            self.data_path.latch_AR(self.PC)
+            self.data_path.latch_ar(self.PC)
             self.inc_tick()
             self.data_path.read_cur_command()
             self.inc_tick()
-            self.data_path.latch_register(reg1, self.data_path.get_int_DR())
+            self.data_path.latch_register(reg1, self.data_path.get_int_dr())
             self.inc_tick()
             self.PC += 1
         if controll_bits == 1:
             if BUFFER_START <= offset_or_address <= BUFFER_END:
-                self.data_path.latch_AR(offset_or_address)
+                self.data_path.latch_ar(offset_or_address)
                 self.inc_tick()
                 self.data_path.read_cur_command()
                 self.inc_tick()
@@ -232,9 +223,7 @@ class ControlUnit:
         offset_or_address = instr & 65535
         if controll_bits == 2:
             offset_or_address = unassigned_to_int(offset_or_address)
-            self.data_path.latch_AR(
-                self.data_path.alu.do("+", self.PC, offset_or_address)
-            )
+            self.data_path.latch_ar(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
             self.inc_tick()
@@ -243,7 +232,7 @@ class ControlUnit:
                 self.data_path.alu.do(
                     operator,
                     self.data_path.get_register(reg1),
-                    self.data_path.get_int_DR(),
+                    self.data_path.get_int_dr(),
                 ),
             )
             self.inc_tick()
@@ -278,15 +267,11 @@ class ControlUnit:
         offset_or_address = instr & 65535
         if controll_bits == 2:
             offset_or_address = unassigned_to_int(offset_or_address)
-            self.data_path.latch_AR(
-                self.data_path.alu.do("+", self.PC, offset_or_address)
-            )
+            self.data_path.latch_ar(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
             self.inc_tick()
-            self.data_path.alu.do(
-                "-", self.data_path.get_register(reg1), self.data_path.get_int_DR()
-            )
+            self.data_path.alu.do("-", self.data_path.get_register(reg1), self.data_path.get_int_dr())
 
     def call_jmp(self, bytes_command_arr: bytes) -> None:
         instr = bytes_command_arr[0]
@@ -296,9 +281,9 @@ class ControlUnit:
         if controll_bits == 2:
             offset_or_address = unassigned_to_int(offset_or_address)
             alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-            self.data_path.latch_DR(struct.pack(">i", alu_res))
+            self.data_path.latch_dr(struct.pack(">i", alu_res))
             self.inc_tick()
-            self.PC = self.data_path.get_int_DR()
+            self.PC = self.data_path.get_int_dr()
         elif controll_bits == 0:
             self.PC = offset_or_address
         self.inc_tick()
@@ -312,9 +297,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -328,9 +313,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -344,9 +329,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -356,19 +341,17 @@ class ControlUnit:
 
     def call_mova(self, bytes_command_arr: bytes) -> None:
         self.calculate_variable_adress(bytes_command_arr)
-        self.data_path.latch_DR(
-            struct.pack(">i", self.data_path.get_register(REGISTERS.RAX))
-        )
+        self.data_path.latch_dr(struct.pack(">i", self.data_path.get_register(REGISTERS.RAX)))
         self.inc_tick()
         self.data_path.write_memory()
         self.inc_tick()
 
     def call_movva(self, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.PC)
+        self.data_path.latch_ar(self.PC)
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_dr())
         self.PC += 1
         self.inc_tick()
 
@@ -378,17 +361,15 @@ class ControlUnit:
             self.data_path.alu.do("-", self.data_path.get_register(REGISTERS.RSP), 1),
         )
         self.inc_tick()
-        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
+        self.data_path.latch_ar(self.data_path.get_register(REGISTERS.RSP))
         self.inc_tick()
-        self.data_path.latch_DR(
-            struct.pack(">i", self.data_path.get_register(REGISTERS.RAX))
-        )
+        self.data_path.latch_dr(struct.pack(">i", self.data_path.get_register(REGISTERS.RAX)))
         self.inc_tick()
         self.data_path.write_memory()
         self.inc_tick()
 
     def call_popa(self, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
+        self.data_path.latch_ar(self.data_path.get_register(REGISTERS.RSP))
         self.inc_tick()
         self.data_path.latch_register(
             REGISTERS.RSP,
@@ -397,22 +378,20 @@ class ControlUnit:
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_dr())
         self.inc_tick()
 
     def call_peeka(self, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
+        self.data_path.latch_ar(self.data_path.get_register(REGISTERS.RSP))
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_dr())
         self.inc_tick()
 
     def call_icmp(self, bytes_command_arr: bytes) -> None:
         self.i_commands_op(bytes_command_arr)
-        self.data_path.alu.do(
-            "-", self.data_path.get_register(REGISTERS.RAX), self.data_path.get_int_DR()
-        )
+        self.data_path.alu.do("-", self.data_path.get_register(REGISTERS.RAX), self.data_path.get_int_dr())
 
     def call_jneq(self, bytes_command_arr: bytes) -> None:
         instr = bytes_command_arr[0]
@@ -423,9 +402,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -439,9 +418,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -455,9 +434,9 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
@@ -471,26 +450,24 @@ class ControlUnit:
             if controll_bits == 2:
                 offset_or_address = unassigned_to_int(offset_or_address)
                 alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
-                self.data_path.latch_DR(struct.pack(">i", alu_res))
+                self.data_path.latch_dr(struct.pack(">i", alu_res))
                 self.inc_tick()
-                self.PC = self.data_path.get_int_DR()
+                self.PC = self.data_path.get_int_dr()
             elif controll_bits == 0:
                 self.PC = offset_or_address
             self.inc_tick()
 
     def call_cmpa(self, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.PC)
+        self.data_path.latch_ar(self.PC)
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
         self.PC += 1
-        self.data_path.alu.do(
-            "-", self.data_path.get_register(REGISTERS.RAX), self.data_path.get_int_DR()
-        )
+        self.data_path.alu.do("-", self.data_path.get_register(REGISTERS.RAX), self.data_path.get_int_dr())
         self.inc_tick()
 
     def call_ival_alu_command(self, operator: str, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.PC)
+        self.data_path.latch_ar(self.PC)
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
@@ -500,7 +477,7 @@ class ControlUnit:
             self.data_path.alu.do(
                 operator,
                 self.data_path.get_register(REGISTERS.RAX),
-                self.data_path.get_int_DR(),
+                self.data_path.get_int_dr(),
             ),
         )
         self.inc_tick()
@@ -512,15 +489,15 @@ class ControlUnit:
         self.call_ival_alu_command("-", bytes_command_arr)
 
     def call_imovsp(self, bytes_command_arr: bytes) -> None:
-        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
+        self.data_path.latch_ar(self.data_path.get_register(REGISTERS.RSP))
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_AR(self.data_path.get_int_DR())
+        self.data_path.latch_ar(self.data_path.get_int_dr())
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_dr())
         self.inc_tick()
 
     def call_imulval(self, bytes_command_arr: bytes) -> None:

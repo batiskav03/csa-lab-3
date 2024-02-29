@@ -1,6 +1,7 @@
 from __future__ import annotations
-from enum import Enum
+
 import re
+from enum import Enum
 
 
 class TokenEnum(Enum):
@@ -43,7 +44,7 @@ token_type_list: list[TokenType] = [
     TokenType(TokenEnum.ELSE, "else"),
     TokenType(TokenEnum.WHILE, "while"),
     TokenType(TokenEnum.TYPE, "string|int|char"),
-    TokenType(TokenEnum.INTVAL, "\d+"),
+    TokenType(TokenEnum.INTVAL, r"\d+"),
     TokenType(TokenEnum.SIGN, "\\+|\\-|\\*|\\/|\\%|and"),
     TokenType(TokenEnum.COMPARATION, "!=|==|>=|<=|<|>"),
     TokenType(TokenEnum.ASSIGN, "="),
@@ -51,10 +52,10 @@ token_type_list: list[TokenType] = [
     TokenType(TokenEnum.COLON, ":"),
     TokenType(TokenEnum.STRING, "'.*'"),
     TokenType(TokenEnum.LITTERAL, "[a-z]+"),
-    TokenType(TokenEnum.LEFTBRACKET, "\{"),
-    TokenType(TokenEnum.RIGHTBRACKET, "\}"),
-    TokenType(TokenEnum.RPAREN, "\)"),
-    TokenType(TokenEnum.LPAREN, "\("),
+    TokenType(TokenEnum.LEFTBRACKET, r"\{"),
+    TokenType(TokenEnum.RIGHTBRACKET, r"\}"),
+    TokenType(TokenEnum.RPAREN, r"\)"),
+    TokenType(TokenEnum.LPAREN, r"\("),
 ]
 
 
@@ -68,8 +69,8 @@ class Token:
 
 
 class Tokenizer:
-    def __init__(self, input: str):
-        self.input: str = input
+    def __init__(self, input_str: str):
+        self.input: str = input_str
 
     def start_analyze(self) -> list[Token]:
         token_list: list[Token] = list()
@@ -84,9 +85,9 @@ class Tokenizer:
         if len(self.input) == 0:
             return None
         self.input = self.input.strip()
-        for type in token_type_list:
-            regexp = type.get_regexp()
+        for type_token in token_type_list:
+            regexp = type_token.get_regexp()
             result = re.match(regexp, self.input)
             if result is not None:
-                return Token(type, result.group(0))
+                return Token(type_token, result.group(0))
         return None

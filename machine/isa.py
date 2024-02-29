@@ -1,6 +1,8 @@
 from __future__ import annotations
-from enum import IntEnum
+
 import struct
+from enum import IntEnum
+
 # Машинное слово - non-fixed от 2 до 4 байт:
 # |1---   |2---   |3---  |4---  |     |5---  |6---  |7---  |8---  |
 # |opcode |ad.mode| regs |
@@ -193,7 +195,7 @@ class Instruction:
     def __str__(self) -> str:
         if self.opcode == OPCODE.MOVVA:
             return f"{ str_opcode[self.opcode] } %rax <- next 4 bytes"
-        elif self.opcode in [
+        if self.opcode in [
             OPCODE.IADDVAL,
             OPCODE.ISUBVAL,
             OPCODE.IMULVAL,
@@ -255,14 +257,10 @@ class OffsetInstructionWithAdMon(OffsetInstruction):
         ]:
             if self.adress_mode == 2:
                 return f"{str_opcode[self.opcode]} %pc + {self.offset}"
-        return (
-            f"{str_opcode[self.opcode]} admod: {self.adress_mode} offset: {self.offset}"
-        )
+        return f"{str_opcode[self.opcode]} admod: {self.adress_mode} offset: {self.offset}"
 
     def get_bytes_value(self) -> bytes:
-        return struct.pack(
-            ">BBh", self.opcode.value, self.adress_mode << 4, self.offset
-        )
+        return struct.pack(">BBh", self.opcode.value, self.adress_mode << 4, self.offset)
 
 
 class AdModRegAdressInstruction(Instruction):
@@ -275,15 +273,11 @@ class AdModRegAdressInstruction(Instruction):
     def __str__(self) -> str:
         if self.opcode == 1:
             if self.adress_mode == 9:
-                return (
-                    f"{str_opcode[self.opcode]} {str_regs[self.reg]} -> {self.adress}"
-                )
-            elif self.adress_mode == 12:
+                return f"{str_opcode[self.opcode]} {str_regs[self.reg]} -> {self.adress}"
+            if self.adress_mode == 12:
                 return f"{str_opcode[self.opcode]} {str_regs[self.reg]} <- next 4 byte"
-            elif self.adress_mode == 1:
-                return (
-                    f"{str_opcode[self.opcode]} {str_regs[self.reg]} <- ({self.adress})"
-                )
+            if self.adress_mode == 1:
+                return f"{str_opcode[self.opcode]} {str_regs[self.reg]} <- ({self.adress})"
         return f"{str_opcode[self.opcode]} reg: {self.reg} adress: {self.adress}"
 
     def get_bytes_value(self) -> bytes:

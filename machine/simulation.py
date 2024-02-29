@@ -1,7 +1,6 @@
 import struct
 import sys
 
-sys.path.append("../csa-lab-3")
 from controlunit import ControlUnit
 
 
@@ -14,13 +13,11 @@ def main(source, target):
             integer_value = struct.unpack(">I", chunk)[0]
             integer_value = struct.pack(">I", integer_value)
             commands.append(integer_value)
-    cu = ControlUnit(commands, 1000, target)
+    cu = ControlUnit(commands, 100000, target)
     cu.start_processering()
 
 
 if __name__ == "__main__":
-    assert (
-        len(sys.argv) == 3
-    ), "Wrong arguments: translator.py <input_file> <target_file>"
+    assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
     _, source, target = sys.argv
     main(source, target)

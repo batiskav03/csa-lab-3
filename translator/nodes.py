@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from lexer import Token
 
 
@@ -30,7 +32,7 @@ class ElseNode(RootNode):
 
 class WhileIfNode(RootNode):
     def __init__(self, statement: Node, token: Token, else_node: ElseNode = None):
-        super(WhileIfNode, self).__init__()
+        super().__init__()
         self.token: Token = token
         self.statement: Node = statement
         self.else_node: ElseNode = else_node
@@ -45,9 +47,6 @@ class WhileIfNode(RootNode):
         return f"( {self.token.token_type.name.name} statement: [{self.statement}] \n: {node_str}  )"
 
 
-class ElseNode(RootNode):
-    def __init__(self):
-        super().__init__()
 
 
 class NumberNode(Node):
@@ -62,9 +61,9 @@ class NumberNode(Node):
 
 
 class VariableNode(Node):
-    def __init__(self, var: Token, type: Token):
+    def __init__(self, var: Token, type_token: Token):
         self.var: Token = var
-        self.type: Token = type
+        self.type: Token = type_token
 
     def get_value(self) -> int:
         return int(self.var.text)
