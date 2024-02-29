@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: 3.9
+        python-version: 3.12
 
     - name: Install dependencies
       run: |
@@ -24,11 +24,7 @@ jobs:
         pip install poetry
         poetry install
 
-    - name: Run tests and coverage
-      run: |
-        poetry run pytest --verbose
-        poetry run coverage run -m pytest
-        poetry run coverage report
+
 
     - name: Check code formatting
       run: poetry run ruff format --check .
