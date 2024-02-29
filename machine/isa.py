@@ -1,24 +1,24 @@
 from __future__ import annotations
 from enum import IntEnum
 import struct
-# Машинное слово - non-fixed от 2 до 4 байт: 
+# Машинное слово - non-fixed от 2 до 4 байт:
 # |1---   |2---   |3---  |4---  |     |5---  |6---  |7---  |8---  |
-# |opcode |ad.mode| regs | 
+# |opcode |ad.mode| regs |
 #                        | regs |     |   address   |
 #                 |   address   |     |   address   |   address   |
 #                                     |           value           |
 
-# Машинное слово - non-fixed 32 - бит  : 
-# |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  opt:|9------- | 10------- | 11------- | 12------- | 
+# Машинное слово - non-fixed 32 - бит  :
+# |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8---  opt:|9------- | 10------- | 11------- | 12------- |
 # |    opcode     |  | regs |                               |                     value                   |
 #                 |    offset   |       address      |          |                     value                   |
 #                 | regs |       address      |                 |                     value                   |
 #                 |       address      |                        |                     value                   |
-#                 | regs        |                               |                     value                   |       
+#                 | regs        |                               |                     value                   |
 
 
 # | mnemonic | opcode (HEX) | definition |
-# | ------  | ------------  | ----------- | 
+# | ------  | ------------  | ----------- |
 # | NOP | 00 | nop |
 # | MOV | 01 | move |
 # | ADD | 02 | summary |
@@ -29,8 +29,8 @@ import struct
 # | AND | 07 | logic and |
 # | OR | 08 | logic or |
 # | NOT | 09 | logic not |
-# | CMP | 0A | compare | 
-# | JMP | 0B | jump | 
+# | CMP | 0A | compare |
+# | JMP | 0B | jump |
 # | JZ | 0C | jump zero |
 # | JN | 0D | jump negative |
 # | JP | 0E | jump positive |
@@ -59,11 +59,6 @@ import struct
 # | IANDVAL | 71 | AND rax with <value>  |
 
 
-
-
-
-
-
 # - rax - регистр общего назначения, используемый при арифмитических операциях
 # - rbx - регистр общего назначения
 # - rdx - регистр общего назначения
@@ -76,6 +71,7 @@ MEMORY_SIZE = 65536
 BUFFER_START = 40000
 BUFFER_END = 44999
 
+
 class REGISTERS(IntEnum):
     RAX = 0
     RBX = 1
@@ -83,8 +79,9 @@ class REGISTERS(IntEnum):
     RCX = 3
     RSP = 4
 
-class OPCODE(IntEnum): 
-    NOP =  0
+
+class OPCODE(IntEnum):
+    NOP = 0
     MOV = 1
     ADD = 2
     SUB = 3
@@ -127,73 +124,168 @@ class OPCODE(IntEnum):
     IAND = 112
     IANDVAL = 113
     INC = 128
-    
+
+
+str_regs: dict[int, str] = {0: "%rax", 1: "%rbx", 2: "%rdx", 3: "%rcx", 4: "%rsp"}
+
+str_opcode: dict[int, str] = {
+    0: "nop",
+    1: "mov",
+    2: "add",
+    3: "sub",
+    4: "mul",
+    5: "div",
+    6: "mod",
+    7: "and",
+    8: "or",
+    9: "not",
+    10: "cmp",
+    11: "jmp",
+    12: "jz",
+    13: "jn",
+    14: "jp",
+    15: "hlt",
+    16: "imov",
+    17: "movv",
+    18: "mova",
+    19: "movva",
+    20: "pusha",
+    21: "popa",
+    22: "peeka",
+    27: "icmp",
+    28: "jneq",
+    29: "jne",
+    30: "jpe",
+    31: "jnz",
+    43: "cmpa",
+    32: "iadd",
+    33: "iaddval",
+    48: "isub",
+    49: "isubval",
+    50: "imovsp",
+    64: "imul",
+    65: "imulval",
+    80: "idiv",
+    81: "idivval",
+    96: "imod",
+    97: "imodval",
+    112: "iand",
+    113: "iandval",
+    128: "inc",
+}
+
+
 class SecondWord:
     def __init__(self, data: int) -> None:
         self.data: int = data
 
     def __str__(self) -> str:
-        return f" value: {self.data} "
-    
+        return f"{self.data} "
+
     def get_bytes_value(self) -> bytes:
         return struct.pack(">i", self.data)
 
-        
-    
-class Instruction:
 
+class Instruction:
     def __init__(self, opcode: OPCODE):
         self.opcode: OPCODE = opcode
-        
+
     def __str__(self) -> str:
-        return f"opcode: { self.opcode }"
-    
+        if self.opcode == OPCODE.MOVVA:
+            return f"{ str_opcode[self.opcode] } %rax <- next 4 bytes"
+        elif self.opcode in [
+            OPCODE.IADDVAL,
+            OPCODE.ISUBVAL,
+            OPCODE.IMULVAL,
+            OPCODE.IDIVVAL,
+            OPCODE.IMODVAL,
+            OPCODE.IANDVAL,
+        ]:
+            return f"{ str_opcode[self.opcode] } %rax <- %rax {str_opcode[self.opcode][1:4]} next 4 bytes"
+
+        return f"{ str_opcode[self.opcode] }"
+
     def get_bytes_value(self) -> bytes:
         return struct.pack(">Bxxx", self.opcode.value)
 
-        
+
 class OffsetInstruction(Instruction):
-    def __init__(self, opcode: OPCODE ,offset: int):
+    def __init__(self, opcode: OPCODE, offset: int):
         super().__init__(opcode)
-        
+
         self.offset: int = offset
 
     def __str__(self) -> str:
-        return f"opcode: {self.opcode} offset: {self.offset}"
-    
+        if self.opcode == OPCODE.IMOV:
+            return f"{str_opcode[self.opcode]} %rax <- (rbp - {self.offset})"
+        if self.opcode == OPCODE.MOVV:
+            return f"{str_opcode[self.opcode]} (rbp - {self.offset}) <- next 4 bytes"
+        if self.opcode == OPCODE.MOVA:
+            return f"{str_opcode[self.opcode]} %rax -> (rbp - {self.offset})"
+        if self.opcode in [
+            OPCODE.IADD,
+            OPCODE.ISUB,
+            OPCODE.IAND,
+            OPCODE.IMUL,
+            OPCODE.IDIV,
+            OPCODE.IMOD,
+        ]:
+            return f"{str_opcode[self.opcode]} %rax <- %rax {str_opcode[self.opcode][1:]} (rbp - {self.offset}) "
+        return f"{str_opcode[self.opcode]} offset: {self.offset}"
+
     def get_bytes_value(self) -> bytes:
         return struct.pack(">Bxh", self.opcode.value, self.offset)
-    
+
+
 class OffsetInstructionWithAdMon(OffsetInstruction):
     def __init__(self, opcode: OPCODE, adress_mode: int, offset: int):
         super().__init__(opcode, offset)
         self.adress_mode: int = adress_mode
-        
+
     def __str__(self) -> str:
-        return f"opcode: {self.opcode} admod: {self.adress_mode} offset: {self.offset}"
-    
+        if self.opcode in [
+            OPCODE.JZ,
+            OPCODE.JN,
+            OPCODE.JMP,
+            OPCODE.JP,
+            OPCODE.JNEQ,
+            OPCODE.JNE,
+            OPCODE.JPE,
+            OPCODE.JNZ,
+        ]:
+            if self.adress_mode == 2:
+                return f"{str_opcode[self.opcode]} %pc + {self.offset}"
+        return (
+            f"{str_opcode[self.opcode]} admod: {self.adress_mode} offset: {self.offset}"
+        )
+
     def get_bytes_value(self) -> bytes:
-        return struct.pack(">BBh", self.opcode.value, self.adress_mode << 4, self.offset)
-    
-    
+        return struct.pack(
+            ">BBh", self.opcode.value, self.adress_mode << 4, self.offset
+        )
+
+
 class AdModRegAdressInstruction(Instruction):
-    
     def __init__(self, opcode: OPCODE, adress_mode: int, reg: REGISTERS, adress):
         super().__init__(opcode)
         self.adress_mode: int = adress_mode
         self.reg: REGISTERS = reg
         self.adress: int = adress
-        
+
     def __str__(self) -> str:
-        return f"opcode: {self.opcode} adress_mode: {self.adress_mode} reg: {self.reg} adress: {self.adress}"
-    
+        if self.opcode == 1:
+            if self.adress_mode == 9:
+                return (
+                    f"{str_opcode[self.opcode]} {str_regs[self.reg]} -> {self.adress}"
+                )
+            elif self.adress_mode == 12:
+                return f"{str_opcode[self.opcode]} {str_regs[self.reg]} <- next 4 byte"
+            elif self.adress_mode == 1:
+                return (
+                    f"{str_opcode[self.opcode]} {str_regs[self.reg]} <- ({self.adress})"
+                )
+        return f"{str_opcode[self.opcode]} reg: {self.reg} adress: {self.adress}"
+
     def get_bytes_value(self) -> bytes:
         to_byte_admod_reg = self.adress_mode * 16 + self.reg
         return struct.pack(">BBH", self.opcode, to_byte_admod_reg, self.adress)
-
-
-
-
-
-        
-    
