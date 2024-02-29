@@ -1,7 +1,5 @@
-int i = 0;
-int k = 123;
-int j = i and k;
-print('xyesosssss');
-while (i != 0) {
-    i = i + 1;
+int n = 0;
+read(n);
+while (n > 0) {
+    print(n);
 }

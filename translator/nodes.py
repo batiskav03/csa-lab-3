@@ -107,13 +107,13 @@ class ReadNode(Node):
         self.string: Token = variable
         
     def get_token_type(self):
-        return self.variable.token_type.name
+        return self.string.token_type.name
     
     def get_token_text(self):
-        return self.variable.text
+        return self.string.text
     
     def __str__(self) -> str:
-        return f" PrintNode: {self.get_token_type()}: {self.variable.text}"
+        return f" PrintNode: {self.get_token_type()}: {self.string.text}"
     
 
 class AssignNode(Node):

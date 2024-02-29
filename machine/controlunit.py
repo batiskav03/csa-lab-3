@@ -64,7 +64,7 @@ class ControlUnit:
     
     def start_processering(self) -> None:
         while (self.cur_tick() < self.limit):
-            print(f"current tick: {self.cur_tick()} PC: {self.PC} RAX: {self.data_path.get_register(REGISTERS.RAX)} RBX: {self.data_path.get_register(REGISTERS.RBX)} DR: {self.data_path.get_DR()} AR: {self.data_path.AR}")
+            print(f"current tick: {self.cur_tick()} PC: {self.PC} RAX: {self.data_path.get_register(REGISTERS.RAX)} RBX: {self.data_path.get_register(REGISTERS.RBX)} DR: {self.data_path.get_DR()} AR: {self.data_path.AR} input_buff: {self.data_path.device.input_buffer}")
             self.instruction_fetch()
             self.PC += 1
             self.decode_fetch()
@@ -202,6 +202,17 @@ class ControlUnit:
             self.data_path.latch_register(reg1, self.data_path.get_int_DR())
             self.inc_tick()
             self.PC += 1
+        if controll_bits == 1:
+            if BUFFER_START <= offset_or_address <= BUFFER_END:
+                self.data_path.latch_AR(offset_or_address)
+                self.inc_tick()
+                self.data_path.read_cur_command()
+                self.inc_tick()
+                self.data_path.latch_register(reg1, self.data_path.input())
+                self.inc_tick()
+            
+            
+            
 
     
     def call_alu_operatoin(self, operator: str, bytes_command_arr: bytes) -> None:
@@ -264,7 +275,6 @@ class ControlUnit:
             self.inc_tick()
             self.data_path.alu.do("-", self.data_path.get_register(reg1), self.data_path.get_int_DR())
         
-    # todo: jumps
     def call_jmp(self, bytes_command_arr: bytes) -> None:
         instr = bytes_command_arr[0]
         controll_bits = instr & 15728640 
@@ -475,7 +485,6 @@ class ControlUnit:
         self.call_ival_alu_command("-", bytes_command_arr)
     
     def call_imovsp(self, bytes_command_arr: bytes) -> None:
-        # peeka ????
         self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
         self.inc_tick()
         self.data_path.read_cur_command()

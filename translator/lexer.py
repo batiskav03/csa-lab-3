@@ -37,6 +37,7 @@ class TokenType:
 
 token_type_list: list[TokenType] = [
     TokenType(TokenEnum.PRINT, "print"),
+    TokenType(TokenEnum.READ, "read"),
     TokenType(TokenEnum.IF, "if"),
     TokenType(TokenEnum.ELSE, "else"),
     TokenType(TokenEnum.WHILE, "while"),

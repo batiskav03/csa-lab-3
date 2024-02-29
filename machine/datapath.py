@@ -89,7 +89,7 @@ class DataPath:
     def write_memory(self) -> None:
         self.memory[self.AR] = self.get_DR()   
         
-    def output(self, value: int):
+    def output(self, value: int) -> None:
         if value == 1 and self.device.output_type != "int":
             self.device.output_type = "int"
             return
@@ -97,6 +97,10 @@ class DataPath:
         
         if self.device.output_type == "int":
             self.device.output_type = "str" 
+            
+    def input(self) -> int:
+        return self.device.get_char_from_device()
+        
     
 
 class DeviceIO:

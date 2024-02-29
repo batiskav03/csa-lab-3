@@ -150,7 +150,7 @@ class Translator:
     def calculate_cmp(self, left_node: Node, right_node: Node) -> list[Instruction]:
         commands: list[Instruction] = []
         if (isinstance(left_node, NumberNode)):
-            movva = Instruction(OPCODE.MOVA)
+            movva = Instruction(OPCODE.MOVVA)
             value = SecondWord(int(left_node.number.text))
             commands += [movva, value]
         elif (isinstance(left_node, VariableNode)):
@@ -292,6 +292,8 @@ class Translator:
 
     def process_input(self, node: ReadNode):
         variable = node.get_token_text()
+        self.commands.append(AdModRegAdressInstruction(OPCODE.MOV, 1, REGISTERS.RAX, 40000))
+        self.commands.append(OffsetInstruction(OPCODE.MOVA, self.variable_offset[variable]))
         
     
     def translate_node(self, node: Node):

@@ -14,7 +14,7 @@ def main(source, target):
             integer_value = struct.unpack('>I', chunk)[0]
             integer_value = struct.pack(">I", integer_value)
             commands.append(integer_value)
-    cu = ControlUnit(commands, 100000, target)
+    cu = ControlUnit(commands, 1000, target)
     cu.start_processering()
     
     

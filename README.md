@@ -55,7 +55,7 @@ control bits 0010 - относительная
 control bits 0100 - косвенная  
 control bits mov 1001 - reg -> adress  
 control bits mov 1100 - reg <- immid.value
-
+control bits mov 0001 - reg <- adress
 -Система команд:
 
 | mnemonic | opcode (HEX) | definition |
