@@ -5,11 +5,11 @@ def unassigned_to_int(uint):
     return uint - MAX_OFFSET * 2 if uint >= MAX_OFFSET else uint
 
 class ControlUnit:
-    def __init__(self, program_memory: list[bytes], limit: int) -> None:
+    def __init__(self, program_memory: list[bytes], limit: int, input_file) -> None:
         self.tick: int = 0
         self.limit: int = limit
         self.PC = 0
-        self.data_path = DataPath(program_memory)
+        self.data_path = DataPath(program_memory, input_file)
         self.instr: bytes = 0
         self.commands_handler: dict [OPCODE, callable] = {
             OPCODE.NOP: self.call_nop,
@@ -68,6 +68,7 @@ class ControlUnit:
             self.instruction_fetch()
             self.PC += 1
             self.decode_fetch()
+        print(f"output: {self.data_path.device.output_buffer}")
             
     def instruction_fetch(self):
         self.data_path.latch_AR(self.PC)
@@ -126,11 +127,9 @@ class ControlUnit:
         #operand fetch
         self.i_commands_op(bytes_command_arr)
         #execution fetch
-        self.data_path.latch_register(REGISTERS.RDX, self.data_path.get_int_DR())
-        self.inc_tick()
-        rdx_int = self.data_path.get_register(REGISTERS.RDX)
+        dr_int = self.data_path.get_int_DR()
         rax_int = self.data_path.get_register(REGISTERS.RAX)
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.alu.do(operator, rax_int, rdx_int))
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.alu.do(operator, rax_int, dr_int))
         self.inc_tick()
         
     def i_commands_op(self, bytes_command_arr: bytes) -> None:
@@ -179,8 +178,8 @@ class ControlUnit:
         reg1 = instr & 983040
         reg1 = reg1 >> 16
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if controll_bits == 2:
+            offset_or_address = unassigned_to_int(offset_or_address)
             self.data_path.latch_AR(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
@@ -193,6 +192,8 @@ class ControlUnit:
             self.inc_tick()
             self.data_path.write_memory()
             self.inc_tick()
+            if BUFFER_START <= offset_or_address <= BUFFER_END:
+                self.data_path.output(self.data_path.get_register(reg1))
         if controll_bits == 12:
             self.data_path.latch_AR(self.PC)
             self.inc_tick()
@@ -210,8 +211,8 @@ class ControlUnit:
         reg1 = instr & 983040
         reg1 = reg1 >> 16
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if controll_bits == 2:
+            offset_or_address = unassigned_to_int(offset_or_address)
             self.data_path.latch_AR(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
@@ -255,8 +256,8 @@ class ControlUnit:
         reg1 = instr & 983040
         reg1 >> 16
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if controll_bits == 2:
+            offset_or_address = unassigned_to_int(offset_or_address)
             self.data_path.latch_AR(self.data_path.alu.do("+", self.PC, offset_or_address))
             self.inc_tick()
             self.data_path.read_cur_command()
@@ -269,9 +270,9 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if controll_bits == 2:
-            alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+            offset_or_address = unassigned_to_int(offset_or_address)
+            alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
             self.data_path.latch_DR(struct.pack(">i", alu_res))
             self.inc_tick()
             self.PC = self.data_path.get_int_DR()
@@ -284,10 +285,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.Z == 1):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -300,10 +301,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.N == 1):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -316,10 +317,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.N == 0):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -344,7 +345,7 @@ class ControlUnit:
         self.inc_tick()
         self.data_path.read_cur_command()
         self.inc_tick()
-        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR)
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
         self.PC += 1
         self.inc_tick()
         
@@ -386,10 +387,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.Z == 0):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -402,10 +403,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.Z == 1 or self.data_path.alu.N == 1):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -418,10 +419,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.Z == 1 or self.data_path.alu.N == 0):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -434,10 +435,10 @@ class ControlUnit:
         controll_bits = instr & 15728640 
         controll_bits = controll_bits >> 20
         offset_or_address = instr & 65535
-        offset_or_address = unassigned_to_int(offset_or_address)
         if (self.data_path.alu.Z == 0):
             if controll_bits == 2:
-                alu_res = self.data_path.alu.do("+", self.PC, offset_or_address)
+                offset_or_address = unassigned_to_int(offset_or_address)
+                alu_res = self.data_path.alu.do("+", self.PC - 1, offset_or_address)
                 self.data_path.latch_DR(struct.pack(">i", alu_res))
                 self.inc_tick()
                 self.PC = self.data_path.get_int_DR()
@@ -475,7 +476,17 @@ class ControlUnit:
     
     def call_imovsp(self, bytes_command_arr: bytes) -> None:
         # peeka ????
-        self.call_peeka(bytes_command_arr)
+        self.data_path.latch_AR(self.data_path.get_register(REGISTERS.RSP))
+        self.inc_tick()
+        self.data_path.read_cur_command()
+        self.inc_tick()
+        self.data_path.latch_AR(self.data_path.get_int_DR())
+        self.inc_tick()
+        self.data_path.read_cur_command()
+        self.inc_tick()
+        self.data_path.latch_register(REGISTERS.RAX, self.data_path.get_int_DR())
+        self.inc_tick()
+        
         
     
     def call_imulval(self, bytes_command_arr: bytes) -> None:
@@ -487,7 +498,7 @@ class ControlUnit:
         
     
     def call_imodval(self, bytes_command_arr: bytes) -> None:
-        self.call_ival_alu_command("*", bytes_command_arr)
+        self.call_ival_alu_command("%", bytes_command_arr)
         
     
     def call_iandval(self, bytes_command_arr: bytes) -> None:

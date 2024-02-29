@@ -1,4 +1,5 @@
 from typing import Callable
+from typing import ClassVar
 from isa import *
 
 
@@ -47,17 +48,18 @@ class ALU:
     
 
 class DataPath:
-    def __init__(self, program_memory: list[bytes]) -> None:
+    def __init__(self, program_memory: list[bytes], input_file: str) -> None:
         self.alu = ALU();
         self.memory: list[bytes] = program_memory + [b'\x00\x00\x00\x00'] * (MEMORY_SIZE - len(program_memory))
         self.AR: int = 0
         self.DR: bytes = 0
+        self.device = DeviceIO(input_file)
         self.regs: dict [REGISTERS, int] = {
             REGISTERS.RAX: 0,
             REGISTERS.RBX: 0,
             REGISTERS.RCX: 0,
             REGISTERS.RDX: 0,
-            REGISTERS.RSP: MEMORY_SIZE
+            REGISTERS.RSP: MEMORY_SIZE - 1
         }
         
     def get_DR(self) -> bytes:
@@ -85,6 +87,43 @@ class DataPath:
         self.DR = command
         
     def write_memory(self) -> None:
-        self.memory[self.AR] = self.get_DR()    
-    
+        self.memory[self.AR] = self.get_DR()   
         
+    def output(self, value: int):
+        if value == 1 and self.device.output_type != "int":
+            self.device.output_type = "int"
+            return
+        self.device.output(value)
+        
+        if self.device.output_type == "int":
+            self.device.output_type = "str" 
+    
+
+class DeviceIO:
+    output_buffer: ClassVar[list] = []
+    input_buffer: ClassVar[list] = []
+    def __init__(self, input_file: str):
+        self.start_buffer_pointer = BUFFER_START
+        self.end_buffer_pointer = BUFFER_END
+        self.output_type = "str"
+        self.input_buffer_pointer = -1
+        with open(input_file, encoding="utf-8") as f:
+            text = f.read()
+            self.input_buffer = [c for c in text]
+        self.input_buffer.append("0")
+
+    def output(self, value: int) -> None:
+        if self.output_type == "str":
+            if value == 0:
+                return
+            self.output_buffer.append(chr(value))
+        else:
+            self.output_buffer.append(str(value))
+
+    def get_char_from_device(self) -> int:
+        self.input_buffer_pointer += 1
+        return (
+            ord(self.input_buffer[self.input_buffer_pointer])
+            if self.input_buffer[self.input_buffer_pointer] != "0"
+            else 0
+        )

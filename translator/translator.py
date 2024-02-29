@@ -2,13 +2,12 @@ import sys
 sys.path.append("../csa-lab-3")
 from machine.isa import AdModRegAdressInstruction, Instruction, OPCODE, MEMORY_SIZE, REGISTERS, OffsetInstruction, SecondWord, MAX_VALUE, BUFFER_START, BUFFER_END, OffsetInstructionWithAdMon
 from lexer import Token, TokenType
-from nodes import AssignNode, BinaryOp, InitNode, Node, NumberNode, RootNode, VariableNode, WhileIfNode, PrintNode
+from nodes import AssignNode, BinaryOp, InitNode, Node, NumberNode, RootNode, VariableNode, WhileIfNode, PrintNode, ReadNode
 from lexer import TokenEnum, Tokenizer
 from ast_parser import AstParser
 
 
 class Translator:
-    # todo: должна быть мапа памяти( получаеться надо расписать память), чтобы на уровне компиляции мы знали что откуда тянуть, куда закидывать
     # https://godbolt.org/
     def __init__(self, ast: Node):
         self.ast: Node = ast
@@ -16,6 +15,7 @@ class Translator:
         self.stack_pointer: int = 0
         self.buffer_pointer: int = BUFFER_START
         self.variable_offset: dict[str, int] = {}
+        self.str_var: dict[str, int] = {} # var, offset
         
 
 
@@ -94,11 +94,6 @@ class Translator:
         left = binary_node.get_left_node()
         right = binary_node.get_right_node()
         operator = binary_node.get_operator()
-        # if (isinstance(left, BinaryOp)):
-        #     self.process_binary_op(left, var_str)
-        # if (isinstance(right, BinaryOp)):
-        #     self.process_binary_op(right, var_str)
-        # recoursive binary op
         if (isinstance(left, NumberNode) and isinstance(right, NumberNode)):
             self.process_binary_op_num_and_num(left, right, var_str, operator)
         elif ((isinstance(left, NumberNode) and isinstance(right, VariableNode))
@@ -204,9 +199,9 @@ class Translator:
         self.commands = []
         self.ast_to_list(node)
         commands_len = len(self.commands)
-        self.commands += self.process_while_condition(commands_len, condition)
-        jmp = OffsetInstructionWithAdMon(OPCODE.JMP, 2, len(self.commands) - 3)
-        self.commands = saved_state + [jmp] + self.commands
+        compare_commads_list = self.process_while_condition(commands_len, condition)
+        jmp = OffsetInstructionWithAdMon(OPCODE.JMP, 2, len(self.commands) + 1)
+        self.commands = saved_state + [jmp] + self.commands + compare_commads_list
         
     def process_if_condition(self, prev_len: int, node: BinaryOp) -> list[Instruction]:
         left = node.get_left_node()
@@ -217,17 +212,17 @@ class Translator:
         
         jump: Instruction
         if (operator == "=="):
-            jump = OffsetInstructionWithAdMon(OPCODE.JNEQ, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JNEQ, 2, prev_len + 1)
         elif (operator == "<"):
-            jump = OffsetInstructionWithAdMon(OPCODE.JPE, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JPE, 2, prev_len + 1)
         elif (operator == ">"):
-            jump = OffsetInstructionWithAdMon(OPCODE.JNZ, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JNZ, 2, prev_len + 1)
         elif (operator == "<="):
-            jump = OffsetInstructionWithAdMon(OPCODE.JP, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JP, 2, prev_len + 1)
         elif (operator == ">="):
-            jump = OffsetInstructionWithAdMon(OPCODE.JN, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JN, 2, prev_len + 1)
         elif (operator == "!="):
-            jump = OffsetInstructionWithAdMon(OPCODE.JZ, 2, length + prev_len + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JZ, 2, prev_len + 1)
         compare_commands_list.append(jump)
 
         return compare_commands_list
@@ -237,18 +232,19 @@ class Translator:
         condition = node.statement
         saved_state = self.commands.copy()
         self.commands = []
-        if (node.else_node != None):
-            commands_len = 1;
-        else:
-            commands_len = 0
-        self.commands += self.process_if_condition(commands_len, condition)
         self.ast_to_list(node)
+        if (node.else_node != None):
+            commands_len = len(self.commands) + 1;
+        else:
+            commands_len = len(self.commands)
+        self.commands = self.process_if_condition(commands_len, condition) + self.commands
+        
         new_state = []
         if (node.else_node != None):
             new_state = self.commands
             self.commands = []
             self.ast_to_list(node.else_node)
-            jmp = OffsetInstructionWithAdMon(OPCODE.JMP, 2, len(self.commands))
+            jmp = OffsetInstructionWithAdMon(OPCODE.JMP, 2, len(self.commands) + 1)
             self.commands = [jmp] + self.commands
         self.commands = saved_state + new_state + self.commands
 
@@ -263,10 +259,10 @@ class Translator:
                     commands.append(SecondWord(ord(ch)))
             commands.append(SecondWord(0))
             length = len(commands)
-            jump = OffsetInstruction(OPCODE.JMP, 2, length + 1)
+            jump = OffsetInstructionWithAdMon(OPCODE.JMP, 2, length + 1)
             commands = [jump] + commands
             movva = Instruction(OPCODE.MOVVA)
-            movva_data = SecondWord(len(self.commands) - len(commands))
+            movva_data = SecondWord(3 + len(self.commands))
             pusha = Instruction(OPCODE.PUSHA)
             imovsp = Instruction(OPCODE.IMOVSP)
             mov_to_buff = AdModRegAdressInstruction(OPCODE.MOV, 9, REGISTERS.RAX, self.buffer_pointer)
@@ -284,11 +280,20 @@ class Translator:
             commands = commands + commands_after_string + command_after_jump
             self.commands += commands
             
-        else:
-            pass
+        elif (type == TokenEnum.LITTERAL):
+            self.commands.append(Instruction(OPCODE.MOVVA))
+            self.commands.append(SecondWord(1))
+            self.commands.append(AdModRegAdressInstruction(OPCODE.MOV, 9, REGISTERS.RAX, self.buffer_pointer))
+            self.commands.append(OffsetInstruction(OPCODE.IMOV, self.variable_offset[node.get_token_text()]))
+            self.commands.append(AdModRegAdressInstruction(OPCODE.MOV, 9, REGISTERS.RAX, self.buffer_pointer))
+            self.commands.append(Instruction(OPCODE.MOVVA))
+            self.commands.append(SecondWord(0))
+            self.commands.append(AdModRegAdressInstruction(OPCODE.MOV, 9, REGISTERS.RAX, self.buffer_pointer))
+
+    def process_input(self, node: ReadNode):
+        variable = node.get_token_text()
         
-
-
+    
     def translate_node(self, node: Node):
         if (isinstance(node, WhileIfNode)):
             if (node.token.token_type.name == TokenEnum.IF):
@@ -301,7 +306,8 @@ class Translator:
             self.process_assign(node)
         elif (isinstance(node, PrintNode)):
             self.process_output(node)
-        
+        elif (isinstance(node, ReadNode)):
+            self.process_input(node)
 
         
     
@@ -314,29 +320,14 @@ class Translator:
                 self.translate_node(node)
                 
 
-# nudes = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "i"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "*"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
-# nudes1 = InitNode(VariableNode(Token(TokenType(TokenEnum.LITTERAL, ""), "j"), Token(TokenType(TokenEnum.TYPE, ""), "int")),BinaryOp(Token(TokenType(None, ""), "+"),NumberNode(Token(TokenType(None, ""), "127")), NumberNode(Token(TokenType(None, ""), "128"))))
-                
-# tokenizer = Tokenizer("""
-#                     int i = 0;
-#                     int j = 1;
-#                     int l = 123;
-#                     j = j + l;
-#                       """)
-# result = tokenizer.start_analyze()
-# j = 0
-# parser = AstParser(result)
-# parsed = parser.parse_code()
-# trans = Translator(parsed)
-# trans.ast_to_list(trans.ast)
-# for i in trans.commands:
-#     print(f"adress => {j} : {i} : {i.get_bytes_value()}")
-#     j+=1
-
 def main(source, target):
     with open(source, encoding="UTF-8") as fr:
         code = fr.read()
     tokens = Tokenizer(code).start_analyze()
+    j = 0
+    for i in tokens:
+        j+=1
+        print(f"{j} = {i}")
     ast_tree = AstParser(tokens).parse_code()
     instr_list = Translator(ast_tree)
     instr_list.ast_to_list(instr_list.ast)
@@ -346,8 +337,10 @@ def main(source, target):
     hlt = Instruction(OPCODE.HLT)
     instr_list = [pre, s_w] + instr_list + [hlt]
     with open(target, "br+") as fw:
+        j = 0
         for instruction in instr_list:
-            print(instruction)
+            print(f" {j}: {instruction}")
+            j+=1
             fw.write(instruction.get_bytes_value())
         
         

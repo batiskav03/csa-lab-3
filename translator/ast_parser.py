@@ -1,6 +1,6 @@
 from __future__ import annotations
 from lexer import Tokenizer, TokenType, Token, TokenEnum, token_type_list
-from nodes import AssignNode, InitNode, Node,  NumberNode, VariableNode, BinaryOp, WhileIfNode, RootNode, ElseNode, PrintNode
+from nodes import AssignNode, InitNode, Node,  NumberNode, VariableNode, BinaryOp, WhileIfNode, RootNode, ElseNode, PrintNode,ReadNode
 
 
 class AstParser:
@@ -127,7 +127,14 @@ class AstParser:
             self.require(TokenEnum.RPAREN)
             self.require(TokenEnum.SEMICOLON)
             return print_node
-    
+        read_statement = self.match(TokenEnum.READ)
+        if (read_statement != None):
+            self.require(TokenEnum.LPAREN)
+            read_node = ReadNode(self.match(TokenEnum.LITTERAL))
+            self.require(TokenEnum.RPAREN)
+            self.require(TokenEnum.SEMICOLON)
+            return read_node
+        
     def parse_code(self) -> Node:
         root = RootNode()
         while (self.pos < len(self.tokens)):
@@ -136,13 +143,4 @@ class AstParser:
         return root
 
 
-tokenizer = Tokenizer("""
-                      print('xyi');
-                      """)
-result = tokenizer.start_analyze()
-j = 0
-for i in result:
-    j+=1
-    print(f"{j} = {i}")
-parser = AstParser(result)
-print(parser.parse_code())
+
