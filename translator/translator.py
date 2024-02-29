@@ -92,8 +92,6 @@ class Translator:
         mov_rax_to_mem = OffsetInstruction(OPCODE.MOVA, self.variable_offset[var_str])
         self.commands += [mov_to_rax, operation_to_rax, mov_rax_to_mem]
 
-
-
     def process_binary_op_num_and_num(self, left: NumberNode, right: NumberNode, var_str: str, operator: str) -> None:
         res: int
         if operator == "+":
@@ -111,8 +109,6 @@ class Translator:
         movv = OffsetInstruction(OPCODE.MOVV, self.variable_offset[var_str])
         value = SecondWord(res)
         self.commands += [movv, value]
-
-
 
     def process_binary_op(self, binary_node: BinaryOp, var_str: str) -> None:
         left = binary_node.get_left_node()

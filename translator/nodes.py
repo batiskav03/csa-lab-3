@@ -47,8 +47,6 @@ class WhileIfNode(RootNode):
         return f"( {self.token.token_type.name.name} statement: [{self.statement}] \n: {node_str}  )"
 
 
-
-
 class NumberNode(Node):
     def __init__(self, number: Token):
         self.number: Token = number
