@@ -24,7 +24,11 @@ jobs:
         pip install poetry
         poetry install
 
-
+    - name: Run tests and coverage
+      run: |
+        poetry run pytests --verbose
+        poetry run coverage run -m pytest
+        poetry run coverage report
 
     - name: Check code formatting
       run: poetry run ruff format --check .

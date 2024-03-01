@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 import struct
 
-from machine.datapath import DataPath
-from machine.isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
+from ..machine.datapath import DataPath
+from ..machine.isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
 
 
 def unassigned_to_int(uint):
@@ -17,7 +17,7 @@ class ControlUnit:
         self.limit: int = limit
         self.PC = 0
         self.data_path = DataPath(program_memory, input_file)
-        self.instr: bytes = 0
+        self.instr: bytes = b"/x01/x00/x00/x00"
         self.commands_handler: dict[OPCODE, callable] = {
             OPCODE.NOP: self.call_nop,
             OPCODE.MOV: self.call_mov,
@@ -71,10 +71,10 @@ class ControlUnit:
 
     def start_processering(self) -> None:
         while self.cur_tick() < self.limit:
-            logging.debug("%s", self)
             self.instruction_fetch()
             self.PC += 1
             self.decode_fetch()
+            logging.debug("%s", self)
 
     def instruction_fetch(self):
         self.data_path.latch_ar(self.PC)
@@ -514,7 +514,7 @@ class ControlUnit:
 
     def __repr__(self):
         return "execute_command {:>15} | tick: {:10d} | pc: {:10d} | %rax: {:10d} | %rbx: {:10d} | %rcx: {:10d} | %rdx {:10d} | %rsp: {:10d} | dr: {:10d}".format(
-            str_opcode[struct.unpack(">Bxxx", self.instr)[0]],
+            str_opcode[struct.unpack(">Bbbb", self.instr)[0]],
             self.tick,
             self.PC,
             self.data_path.get_register(REGISTERS.RAX),

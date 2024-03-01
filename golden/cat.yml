@@ -1,0 +1,73 @@
+in_source: |-
+  char n = 0;
+  read(n);
+  while (n != 0) {
+    print(n);
+    read(n);
+  }
+
+in_stdin: |-
+  Max
+out_stdout: ''
+translator_log: |2
+   0 - 01c10000 - mov %rbx <- next 4 byte
+   1 - 0000afc8 - 45000 
+   2 - 11000000 - movv (rbp - 0) <- next 4 bytes
+   3 - 00000000 - 0 
+   4 - 01109c40 - mov %rax <- (40000)
+   5 - 12000000 - mova %rax -> (rbp - 0)
+   6 - 0b200008 - jmp %pc + 8
+   7 - 10000000 - imov %rax <- (rbp - 0)
+   8 - 01909c40 - mov %rax -> 40000
+   9 - 13000000 - movva %rax <- next 4 bytes
+   10 - 00000000 - 0 
+   11 - 01909c40 - mov %rax -> 40000
+   12 - 01109c40 - mov %rax <- (40000)
+   13 - 12000000 - mova %rax -> (rbp - 0)
+   14 - 10000000 - imov %rax <- (rbp - 0)
+   15 - 2b000000 - cmpa
+   16 - 00000000 - 0 
+   17 - 1c20fff6 - jneq %pc + -10
+   18 - 0f000000 - hlt
+machine_log: |
+  DEBUG   controlunit:start_processering execute_command             mov | tick:          4 | pc:          2 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:      45000
+  DEBUG   controlunit:start_processering execute_command            movv | tick:         10 | pc:          4 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx      45000 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         14 | pc:          5 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx      45000 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            mova | tick:         19 | pc:          6 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         77
+  DEBUG   controlunit:start_processering execute_command             jmp | tick:         22 | pc:         14 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         14
+  DEBUG   controlunit:start_processering execute_command            imov | tick:         27 | pc:         15 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         77
+  DEBUG   controlunit:start_processering execute_command            cmpa | tick:         31 | pc:         17 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            jneq | tick:         34 | pc:          7 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          7
+  DEBUG   controlunit:start_processering execute_command            imov | tick:         39 | pc:          8 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         77
+  DEBUG   datapath:output         <- M
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         43 | pc:          9 | %rax:         77 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         77
+  DEBUG   controlunit:start_processering execute_command           movva | tick:         47 | pc:         11 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         51 | pc:         12 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         55 | pc:         13 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            mova | tick:         60 | pc:         14 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         97
+  DEBUG   controlunit:start_processering execute_command            imov | tick:         65 | pc:         15 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         97
+  DEBUG   controlunit:start_processering execute_command            cmpa | tick:         69 | pc:         17 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            jneq | tick:         72 | pc:          7 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          7
+  DEBUG   controlunit:start_processering execute_command            imov | tick:         77 | pc:          8 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         97
+  DEBUG   datapath:output        M <- a
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         81 | pc:          9 | %rax:         97 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:         97
+  DEBUG   controlunit:start_processering execute_command           movva | tick:         85 | pc:         11 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         89 | pc:         12 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:         93 | pc:         13 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            mova | tick:         98 | pc:         14 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:        120
+  DEBUG   controlunit:start_processering execute_command            imov | tick:        103 | pc:         15 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:        120
+  DEBUG   controlunit:start_processering execute_command            cmpa | tick:        107 | pc:         17 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            jneq | tick:        110 | pc:          7 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          7
+  DEBUG   controlunit:start_processering execute_command            imov | tick:        115 | pc:          8 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:        120
+  DEBUG   datapath:output        Ma <- x
+  DEBUG   controlunit:start_processering execute_command             mov | tick:        119 | pc:          9 | %rax:        120 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:        120
+  DEBUG   controlunit:start_processering execute_command           movva | tick:        123 | pc:         11 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:        127 | pc:         12 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command             mov | tick:        131 | pc:         13 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            mova | tick:        136 | pc:         14 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            imov | tick:        141 | pc:         15 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            cmpa | tick:        145 | pc:         17 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:          0
+  DEBUG   controlunit:start_processering execute_command            jneq | tick:        146 | pc:         18 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:  471924726
+  DEBUG   datapath:output_the_buffer output: Max
+  INFO    controlunit:call_hlt      Simulation ended
+  DEBUG   controlunit:start_processering execute_command             hlt | tick:        147 | pc:         19 | %rax:          0 | %rbx:      45000 | %rcx:          0 | %rdx          0 | %rsp:      65535 | dr:  251658240

@@ -2,7 +2,9 @@ import logging
 import struct
 import sys
 
-from machine.controlunit import ControlUnit
+sys.path.append("../csa-lab-3")
+
+from ..machine.controlunit import ControlUnit
 
 
 def main(source, target):
