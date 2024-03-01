@@ -8,8 +8,8 @@ import tempfile
 sys.path.append("../csa-lab-3")
 import pytest
 
-from ..machine import simulation
-from ..translator import translator
+from machine import simulation
+from translator import translator
 
 
 @pytest.mark.golden_test("../golden/*.yml")
