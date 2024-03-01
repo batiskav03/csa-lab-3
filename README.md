@@ -1,6 +1,8 @@
 # csa-lab3
 
 ## Вариант 
+```Калабухов Максим Александрович ```
+```< alg | cisc | neum | hw | instr | binary | stream | mem | cstr | prob2 >```
 | Особенность             |                                  |
 |-------------------------|----------------------------------|
 | alg                     | синтаксис языка должен напоминать java/javascript/lua.                               |
@@ -34,8 +36,8 @@ op ::= <litteral> | <number> |
              "(" <op> ")"  |
 asign ::= <type> <litteral> "="  <op>  ";"         
 type ::= "int" | "char"  
-if_statement ::= "if" "(" <op> ")" "{"  <statements> { "else" ":" '{' <statements> '}' } "}"
-loop_statement ::= "while" "(" <op> ")" ":" "{" <statements> "}"
+if_statement ::= "if" "(" <op> ")" "{"  <statements> { "else" '{' <statements> '}' } "}"
+loop_statement ::= "while" "(" <op> ")" "{" <statements> "}"
 number ::= [0-9]*
 litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
@@ -83,8 +85,10 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
 +-----------------------------------------------+
 ```
 - Память данных и команд общая
+- Размер ячейки памяти - 32 бита. Соответственно, 64-ёх битные инстуркции храняться в двух последовательных ячейках памяти.
 - 6 регистров общего назначения, а так же регистр  __DR__, в который считываются данные из памяти или записываются, и регистр __AR__, который хранит адрес ячейки, к которой идет обращение.
 - Размер всех регистров - 32 бита, за исключением __AR__, размер которого равен 16 бит.
+- 
 
 Память разделена на 4 условных блока:
 1. Блок, куда загружается программа _(programm start)_
@@ -166,10 +170,15 @@ True Complex Instruction Set:
     - Работа с устройствами ввода вывода просходит через память.
     - Память процессора хранит команды в бинарном виде.
 - Кодирование инструкций: 
-  - Инструкции транслируются в бинарный файл в соответсвующем виде.
-   Пример сгенерированного бинарого файла, открытого в hex editor-e:
+  - Инструкции кодируются в бинаром формате в соответствии со структурой машинного слова _(см. Структура памяти)_. 
+   
+##Транслятор
+- Интерфейс командной строки:```translator.py <input_file> <target_file> <debug_file>```. На вход принимается файл с исходным кодом, бинарный файл, в который будет производиться запись и откладочный файл.
+- Исходный код перобразуется в поток токенов, на основе которых строиться ast-дерево.
+- На этапе трансляции ast-дерева происходит линковка переменных. Дерево транслируеться в набор команд, представленных в бинарном виде в соответствии со структурой команды _(см. Структура памяти)_, c последующей записью в бинарный файл. Помимо этого, идет запись в человеко-читаемый откладочный файл. 
+- Пример сгенерированного бинарого файла, открытого в hex editor-e:
   ![hex](./img/hex_editor.png)
-   Пример откладочного файла:
+- Пример откладочного файла:
   ```
     0 - 01c10000 - mov %rbx <- next 4 byte
     1 - 0000afc8 - 45000 
@@ -179,10 +188,10 @@ True Complex Instruction Set:
     5 - 12000000 - mova %rax -> (rbp - 0)
     6 - 0b200008 - jmp %pc + 8
     7 - 10000000 - imov %rax <- (rbp - 0)
-    8 - 01909c40 - mov %rax -> 40000
+    8 - 01909c40 - mov %rax -> (40000)
     9 - 13000000 - movva %rax <- next 4 bytes
     10 - 00000000 - 0 
-    11 - 01909c40 - mov %rax -> 40000
+    11 - 01909c40 - mov %rax -> (40000)
     12 - 01109c40 - mov %rax <- (40000)
     13 - 12000000 - mova %rax -> (rbp - 0)
     14 - 10000000 - imov %rax <- (rbp - 0)
@@ -192,13 +201,86 @@ True Complex Instruction Set:
     18 - 0f000000 - hlt
     ```
 
+##Модель процессора 
+Интерфейс командной строки:```machine.py <machine_code_file> <input_file>```. 
 
 
 
-
-
-## Модель процессора
 **DataPath**
-![DataPath](./img/data_path.jpeg)
+![DataPath](./img/data_path.png)
+Сигналы на схеме:
+- ```latch_reg``` - записать значение в регистр ```x```
+- ```sel_reg_wr``` - регистр для записи
+- ```sel_op``` - выбор операции, производимой алу
+- ```sel_alu_in``` - выбор регистра, подаваемого на вход АЛУ
+
+Флаги в АЛУ:
+- ___N___ - результат отрицателен
+- ___Z___ - результат ноль
+
+
 **ControlUnit**
 ![ControlUnit](./img/control_unit.jpeg)
+- Hardwired
+- В методе ```start_processering``` происходит работа машины. Внутри метода выполняеться цикл выборки команды и цикл декодирования, который, основываясь на ```opcode``` команды, делегирует выполнение функции _(которая в себе содержит operand ```fetch``` и ```execution fetch```)_, привязанной к этой команде.
+- Каждая запись в журнале соответствует состоянию процессора после выполнения инструкции, для этого используется модуль ```logging```
+- Остановка моделирования завершаеться, если 
+  - Количество тактов превысило заранее заданный лимит
+  - При выполнении ```hlt```
+
+##Тестирование
+ - [cat](./golden/cat.yml)
+ - [hello world](./golden/hello_world.yml)
+ - [hello user](./golden/hello_world_user.yml)
+ - [prob2](./golden/prob2.yml) - сумма четных чисел, не превышающих 4 млн, последовательности Фиббоначи
+
+  - Файл с тестами [test](./test/test.py). Тестирование работает через golden tests, которые можно найти в [golden](./golden/)
+
+- CI
+``` yml
+name: Python CI
+
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  csa-lab-3:
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@master
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install
+
+    - name: Run tests and coverage
+      run: |
+        poetry run coverage run -m pytest ./test/test.py
+        poetry run coverage report -m
+
+    - name: Check code formatting
+      run: poetry run ruff format --check .
+
+    - name: Run code linting
+      run: |
+        poetry run ruff check .
+```
+## Итог
+```text
+| ФИО                            | алг              |LoC | code байт | code инстр. | инстр. | такт. | вариант                                                               |
+| Калабухов Максим Александрович | hello            | 1  | 120       | 13          | 122    | 424   | alg | cisc | neum | hw | instr | binary | stream | mem | cstr | prob2 |
+| Калабухов Максим Александрович | cat              | 6  | 76        | 15          | 38     | 147   | alg | cisc | neum | hw | instr | binary | stream | mem | cstr | prob2 |
+| Калабухов Максим Александрович | hello_user_name  | 8  | 220       | 37          | 122    | 445   | alg | cisc | neum | hw | instr | binary | stream | mem | cstr | prob2 |
+| Калабухов Максим Александрович | prob2            | 15 | 176       | 33          | 562    | 2552  | alg | cisc | neum | hw | instr | binary | stream | mem | cstr | prob2 |
+```
