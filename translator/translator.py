@@ -365,7 +365,6 @@ def main(source, target, debug_file):
             j += 1
 
 
-
 if __name__ == "__main__":
     assert len(sys.argv) == 4, "Wrong arguments: translator.py <input_file> <target_file> <debug_file>"
     _, source, target, debug = sys.argv
