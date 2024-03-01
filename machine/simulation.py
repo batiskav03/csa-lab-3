@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("../csa-lab-3")
 
-from ..machine.controlunit import ControlUnit
+from machine.controlunit import ControlUnit
 
 
 def main(source, target):

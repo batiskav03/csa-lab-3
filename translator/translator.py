@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import sys
 
-from ..translator.ast_parser import AstParser
-from ..translator.lexer import TokenEnum, Tokenizer
+from translator.ast_parser import AstParser
+from translator.lexer import TokenEnum, Tokenizer
 
 sys.path.append("../csa_lab3")
 
-from ..machine.isa import (
+from machine.isa import (
     BUFFER_START,
     OPCODE,
     REGISTERS,
@@ -17,7 +17,7 @@ from ..machine.isa import (
     OffsetInstructionWithAdMon,
     SecondWord,
 )
-from ..translator.nodes import (
+from translator.nodes import (
     AssignNode,
     BinaryOp,
     InitNode,
