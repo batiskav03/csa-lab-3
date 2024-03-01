@@ -21,6 +21,6 @@ def main(source, target):
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
+    assert len(sys.argv) == 3, "Wrong arguments: simpulation.py <input_file> <target_file>"
     _, source, target = sys.argv
     main(source, target)

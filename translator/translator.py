@@ -365,8 +365,6 @@ def main(source, target, debug_file):
         j = 0
         for instruction in instr_list:
             file_debug.write(f" {j} - {instruction.get_bytes_value().hex()} - {instruction}\n")
-            print(f" {j}: {instruction}")
-            j += 1
             fw.write(instruction.get_bytes_value())
 
 
