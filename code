@@ -1,5 +1,0 @@
-int n = 0;
-read(n);
-while (n > 0) {
-    print(n);
-}
