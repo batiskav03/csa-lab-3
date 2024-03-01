@@ -1,5 +1,6 @@
 import struct
 import sys
+import logging
 
 from controlunit import ControlUnit
 
@@ -17,7 +18,9 @@ def main(source, target):
     cu.start_processering()
 
 
+
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
     _, source, target = sys.argv
     main(source, target)

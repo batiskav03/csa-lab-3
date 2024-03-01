@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import struct
+import logging
 
 from datapath import DataPath
-from isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS
+from isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
 
 
 def unassigned_to_int(uint):
@@ -70,13 +71,11 @@ class ControlUnit:
 
     def start_processering(self) -> None:
         while self.cur_tick() < self.limit:
-            print(
-                f"current tick: {self.cur_tick()} PC: {self.PC} RAX: {self.data_path.get_register(REGISTERS.RAX)} RBX: {self.data_path.get_register(REGISTERS.RBX)} DR: {self.data_path.get_dr()} AR: {self.data_path.AR} input_buff: {self.data_path.device.input_buffer}"
-            )
+            logging.debug("%s", self)
             self.instruction_fetch()
             self.PC += 1
             self.decode_fetch()
-        print(f"output: {self.data_path.device.output_buffer}")
+            
 
     def instruction_fetch(self):
         self.data_path.latch_ar(self.PC)
@@ -337,7 +336,9 @@ class ControlUnit:
             self.inc_tick()
 
     def call_hlt(self, bytes_command_arr: bytes) -> None:
-        self.tick = self.limit
+        self.limit = self.tick - 1
+        self.data_path.device.output_the_buffer()
+        logging.info("Simulation ended")
 
     def call_mova(self, bytes_command_arr: bytes) -> None:
         self.calculate_variable_adress(bytes_command_arr)
@@ -511,3 +512,17 @@ class ControlUnit:
 
     def call_iandval(self, bytes_command_arr: bytes) -> None:
         self.call_ival_alu_command("&", bytes_command_arr)
+        
+    
+    def __repr__(self):
+        return "execute_command {:>15} | tick: {:10d} | pc: {:10d} | %rax: {:10d} | %rbx: {:10d} | %rcx: {:10d} | %rdx {:10d} | %rsp: {:10d} | dr: {:10d}".format(
+            str_opcode[struct.unpack(">Bxxx", self.instr)[0]],
+            self.tick,
+            self.PC,
+            self.data_path.get_register(REGISTERS.RAX),
+            self.data_path.get_register(REGISTERS.RBX),
+            self.data_path.get_register(REGISTERS.RCX),
+            self.data_path.get_register(REGISTERS.RDX),
+            self.data_path.get_register(REGISTERS.RSP),
+            self.data_path.get_int_dr()
+        )

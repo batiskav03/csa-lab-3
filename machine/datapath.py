@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import logging
 
 sys.path.append("../csa-lab-3")
 import struct
@@ -122,8 +123,13 @@ class DeviceIO:
         if self.output_type == "str":
             if value == 0:
                 return
+            if chr(value) == " ":
+                logging.debug("".join(self.output_buffer) + " <- ' '")
+            else:
+                logging.debug("".join(self.output_buffer) + " <- " + chr(value))
             self.output_buffer.append(chr(value))
         else:
+            logging.debug("".join(self.output_buffer) + " <- " + str(value))
             self.output_buffer.append(str(value))
 
     def get_char_from_device(self) -> int:
@@ -133,3 +139,9 @@ class DeviceIO:
             if self.input_buffer[self.input_buffer_pointer] != "0"
             else 0
         )
+        
+    def output_the_buffer(self):
+        for c in self.output_buffer:
+            print(c, end="")
+        logging.debug("output: " + "".join(self.output_buffer))
+        self.output_buffer.clear()
