@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import sys
 
-from ast_parser import AstParser
-from lexer import TokenEnum, Tokenizer
+from translator.ast_parser import AstParser
+from translator.lexer import TokenEnum, Tokenizer
 
 sys.path.append("../csa_lab3")
 
@@ -17,7 +17,7 @@ from machine.isa import (
     OffsetInstructionWithAdMon,
     SecondWord,
 )
-from nodes import (
+from translator.nodes import (
     AssignNode,
     BinaryOp,
     InitNode,
@@ -349,10 +349,6 @@ def main(source, target, debug_file):
     with open(source, encoding="UTF-8") as fr:
         code = fr.read()
     tokens = Tokenizer(code).start_analyze()
-    j = 0
-    for i in tokens:
-        j += 1
-        print(f"{j} = {i}")
     ast_tree = AstParser(tokens).parse_code()
     instr_list = Translator(ast_tree)
     instr_list.ast_to_list(instr_list.ast)
@@ -361,13 +357,13 @@ def main(source, target, debug_file):
     s_w = SecondWord(45000)
     hlt = Instruction(OPCODE.HLT)
     instr_list = [pre, s_w, *instr_list, hlt]
-    with open(target, "br+") as fw, open(debug_file, "w") as file_debug:
+    with open(target, "wb") as fw, open(debug_file, "w") as file_debug:
         j = 0
         for instruction in instr_list:
             file_debug.write(f" {j} - {instruction.get_bytes_value().hex()} - {instruction}\n")
-            print(f" {j}: {instruction}")
-            j += 1
             fw.write(instruction.get_bytes_value())
+            j += 1
+
 
 
 if __name__ == "__main__":
