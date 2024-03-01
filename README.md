@@ -31,31 +31,30 @@ op ::= <litteral> | <number> |
              <op> "or" <op>|
              <op> "and" <op>|
              <op> "!=" <op>|
-             "!"<op>       |
-             <op>"++"      |
-             <op>"--"      |
              "(" <op> ")"  |
-asign ::= <type> <litteral> "="  <op>  ";"          #TODO: char and string
-type ::= "int" | "char" | "string" 
-if_statement ::= "if" <op> ":" "{"  <statements> { "else" ":" '{' <statements> '}' } "}"
-loop_statement ::= "while" <op> ":" "{" <statements> "}"
+asign ::= <type> <litteral> "="  <op>  ";"         
+type ::= "int" | "char"  
+if_statement ::= "if" "(" <op> ")" "{"  <statements> { "else" ":" '{' <statements> '}' } "}"
+loop_statement ::= "while" "(" <op> ")" ":" "{" <statements> "}"
 number ::= [0-9]*
 litteral ::= [a-bA-B][a-bA-B0-9]*
 ```
-```
-Машинное слово - non-fixed 32 - бит  : 
+``` 
+Машинное слово - non-fixed 32 - 64 бит  : 
 |1---   |2---   |3---  |4---  |5---  |6---  |7---  |8--- | opt:|9------- | 10------- | 11------- | 12------- | 
 |    opcode     | cntrl| reg  |           adress         |     |                     value                   |
                 | cntrl| reg  |           offset         |     |                     value                   |
                 | cntrl| reg  | reg  |
                 
 ```
+### Вариации битов управления:
 
-control bits 0010 - относительная  
-control bits 0100 - косвенная  
-control bits mov 1001 - reg -> adress  
-control bits mov 1100 - reg <- immid.value
-control bits mov 0001 - reg <- adress
+- control bits 0010 - относительная адрессация 
+- control bits 0100 - косвенная адрессация 
+- control bits mov 1001 - reg -> adress 
+- control bits mov 1100 - reg <- immid.value
+- control bits mov 0001 - reg <- adress
+
 -Система команд:
 
 | mnemonic | opcode (HEX) | definition |
