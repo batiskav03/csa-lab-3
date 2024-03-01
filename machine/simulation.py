@@ -1,6 +1,6 @@
+import logging
 import struct
 import sys
-import logging
 
 from controlunit import ControlUnit
 
@@ -16,7 +16,6 @@ def main(source, target):
             commands.append(integer_value)
     cu = ControlUnit(commands, 100000, target)
     cu.start_processering()
-
 
 
 if __name__ == "__main__":
