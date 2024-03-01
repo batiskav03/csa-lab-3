@@ -1,6 +1,6 @@
+import logging
 import struct
 import sys
-import logging
 
 from controlunit import ControlUnit
 

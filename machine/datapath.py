@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import sys
 import logging
+import sys
 
 sys.path.append("../csa-lab-3")
 import struct
@@ -139,9 +139,7 @@ class DeviceIO:
             if self.input_buffer[self.input_buffer_pointer] != "0"
             else 0
         )
-        
+
     def output_the_buffer(self):
-        for c in self.output_buffer:
-            print(c, end="")
         logging.debug("output: " + "".join(self.output_buffer))
         self.output_buffer.clear()

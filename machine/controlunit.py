@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import struct
 import logging
+import struct
 
 from datapath import DataPath
 from isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
@@ -75,7 +75,7 @@ class ControlUnit:
             self.instruction_fetch()
             self.PC += 1
             self.decode_fetch()
-            
+
 
     def instruction_fetch(self):
         self.data_path.latch_ar(self.PC)
@@ -512,8 +512,8 @@ class ControlUnit:
 
     def call_iandval(self, bytes_command_arr: bytes) -> None:
         self.call_ival_alu_command("&", bytes_command_arr)
-        
-    
+
+
     def __repr__(self):
         return "execute_command {:>15} | tick: {:10d} | pc: {:10d} | %rax: {:10d} | %rbx: {:10d} | %rcx: {:10d} | %rdx {:10d} | %rsp: {:10d} | dr: {:10d}".format(
             str_opcode[struct.unpack(">Bxxx", self.instr)[0]],
