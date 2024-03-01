@@ -12,7 +12,7 @@
 | stream                  | Ввод-вывод осуществляется как поток токенов.                                         |
 | mem                     | memory-mapped                                                                        |
 | cstr                    | Null-terminated (C string)                                                           |
-| prob5                   |                                                                                      |
+| prob2                   |                                                                                      |
 
 
 ## Язык программирования 
