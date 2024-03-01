@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from lexer import Token, TokenEnum, TokenType
-from nodes import (
+from translator.lexer import Token, TokenEnum, TokenType
+from translator.nodes import (
     AssignNode,
     BinaryOp,
     ElseNode,
