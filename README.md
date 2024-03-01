@@ -20,7 +20,7 @@
 ## Язык программирования 
 - Грамматика:
 ``` ebnf
-program ::= "{" <statements> "}"
+program ::=  <statements>
 statements ::= <statement> | <statement> <statements>
 statement ::=  (<asign> | <if_statement> | <loop_statement> | <op>) ";"
 op ::= <litteral> | <number> |
