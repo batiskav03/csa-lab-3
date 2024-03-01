@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from lexer import Token
+from translator.lexer import Token
 
 
 class Node:

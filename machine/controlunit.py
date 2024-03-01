@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 import struct
 
-from datapath import DataPath
-from isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
+from machine.datapath import DataPath
+from machine.isa import BUFFER_END, BUFFER_START, MAX_OFFSET, OPCODE, REGISTERS, str_opcode
 
 
 def unassigned_to_int(uint):

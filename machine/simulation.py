@@ -2,7 +2,7 @@ import logging
 import struct
 import sys
 
-from controlunit import ControlUnit
+from machine.controlunit import ControlUnit
 
 
 def main(source, target):

@@ -7,7 +7,7 @@ sys.path.append("../csa-lab-3")
 import struct
 from typing import Callable, ClassVar
 
-from isa import BUFFER_END, BUFFER_START, MEMORY_SIZE, REGISTERS
+from machine.isa import BUFFER_END, BUFFER_START, MEMORY_SIZE, REGISTERS
 
 alu_operations: dict[str, Callable[[int, int], int]] = {
     "+": lambda left, right: left + right,

@@ -28,7 +28,7 @@ def test_translator_and_machine(golden, caplog):
             translator.main(source, out_bin, debug)
             simulation.main(out_bin, input_stream)
 
-        with open(target_log, encoding="utf-8") as file:
+        with open(debug, encoding="utf-8") as file:
             log = file.read()
 
         assert log == golden.out["translator_log"]
