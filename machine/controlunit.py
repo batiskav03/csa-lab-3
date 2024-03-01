@@ -76,7 +76,6 @@ class ControlUnit:
             self.PC += 1
             self.decode_fetch()
 
-
     def instruction_fetch(self):
         self.data_path.latch_ar(self.PC)
         self.data_path.read_cur_command()
@@ -513,7 +512,6 @@ class ControlUnit:
     def call_iandval(self, bytes_command_arr: bytes) -> None:
         self.call_ival_alu_command("&", bytes_command_arr)
 
-
     def __repr__(self):
         return "execute_command {:>15} | tick: {:10d} | pc: {:10d} | %rax: {:10d} | %rbx: {:10d} | %rcx: {:10d} | %rdx {:10d} | %rsp: {:10d} | dr: {:10d}".format(
             str_opcode[struct.unpack(">Bxxx", self.instr)[0]],
@@ -524,5 +522,5 @@ class ControlUnit:
             self.data_path.get_register(REGISTERS.RCX),
             self.data_path.get_register(REGISTERS.RDX),
             self.data_path.get_register(REGISTERS.RSP),
-            self.data_path.get_int_dr()
+            self.data_path.get_int_dr(),
         )
