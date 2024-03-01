@@ -26,8 +26,8 @@ jobs:
 
     - name: Run tests and coverage
       run: |
-        poetry run coverage run -m pytest .
-        poetry run coverage report
+        poetry run coverage run -m pytest ./test/test.py
+        poetry run coverage report -m
 
     - name: Check code formatting
       run: poetry run ruff format --check .
