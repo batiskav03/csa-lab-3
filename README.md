@@ -207,7 +207,7 @@ True Complex Instruction Set:
 
 
 **DataPath**
-![DataPath](./img/data_path.jpeg)
+![DataPath](./img/data_path.png)
 Сигналы на схеме:
 - ```latch_reg``` - записать значение в регистр ```x```
 - ```sel_reg_wr``` - регистр для записи
