@@ -112,7 +112,7 @@ litteral ::= [a-bA-B][a-bA-B0-9]*
 - control bits 0010 - относительная адрессация 
 - control bits 0100 - косвенная адрессация 
 - control bits mov 1001 - reg -> adress 
-- control bits mov 1100 - reg <- immid.value
+- control bits mov 1100 - reg <- immed.value
 - control bits mov 0001 - reg <- adress
 
 ## Система команд
